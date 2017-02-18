@@ -1,18 +1,13 @@
-#include <stdlib>
 #include <string>
 #include "metafile.hpp"
+#include <iostream>
 
-using namespace std;
-using namspace metafile;
+using namespace metafile;
 
 int main(int argc, char * argv[]) {
-	string name;
-	string file;
-	if(argv > 1) {
-		name = argv[1]
-		cour << argv[1] << endl;
-	}
-	
-	cin >> file;
-	Metafile metafile new MetaFile(file);
+	string filename;
+	cout << "Please type in file path: " << endl;
+	cin >> filename;
+	Metafile *metafile = new metafile::Metafile(filename);
+	(*metafile).displayMetafile();
 }

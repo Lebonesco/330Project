@@ -1,5 +1,5 @@
-#ifndef METAFILE_H
-#define METAFILE_H
+#ifndef METAFILE_HPP_
+#define METAFILE_HPP_
 
 using namespace std;
 
@@ -10,21 +10,17 @@ public:
 	~Metafile();
 	void getMetafile();
 	void displayMetafile();
-protected:
+	void getFileSize(string file);
+	void bencode();
+public:
 	int numberOfPreferedNeighbors = 2;
-	int Unchoking interval = 5;
+	int unchokingInterval = 5;
 	int optimisticUnchoking = 15;
 	int fileSize;
 	int pieceSize;
 	string fileName;
 	string announce;
 };
-}
-
-
-
-
-
-
+};
 
 #endif
