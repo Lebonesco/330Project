@@ -33,6 +33,7 @@ void getPath() {
 	std::getline(std::cin, path);
 	cout << '\n';
 
+	//look for file on thier system
 	ifstream file(path.c_str());
 
 	while (!file) {
@@ -44,9 +45,19 @@ void getPath() {
 
        		ifstream file(path.c_str());
 	}	
+	
+	//upload file onto server?
+	
 }
 //get user input on what file they would like to download
-void getFileName() {
+void getDownloadFile() {
+	int fileNum;
+
+	cout << "Enter number of file would you like to download: ";
+	cin >> fileNum;
+	cout << "File number entered: " << fileNum << endl;
+
+	//connect to server and start downloading file?
 
 }
 
@@ -62,6 +73,7 @@ int main () {
 	} else {
 		//display the options of files to be downloaded
 		//get user input on which file they would like to download
+		getDownloadFile();
 	}
 	
 
