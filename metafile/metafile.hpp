@@ -12,6 +12,7 @@ public:
 	void displayMetafile();
 	void getFileSize(string file);
 	void bencode();
+	void generateChunks();
 public:
 	int numberOfPreferedNeighbors = 2;
 	int unchokingInterval = 5;
