@@ -44,25 +44,25 @@ void Metafile::bencode() {
 
 void Metafile::generateChunks() {
 	std::ostringstream sStringer;
-	ifstream::pos_type nSize;
-	ifstream fSource(fileName, ios_base::ate | ios::binary | ios::in);
+	ifstream::pos_type nSize; // keep tracks of file length
+	ifstream fSource(fileName, ios_base::ate | ios::binary | ios::in); // opens file
 	char *sMemBlock;
-	nSize = fSource.tellg();
+	nSize = fSource.tellg(); // get size of file
 	string Extension = strstr(fileName.c_str(), ".");
 	int nGetPointer = 0;
 	istringstream nIntegerer(to_string(pieceSize));
 	int nChunkSize;
-	nIntegerer >> nChunkSize;
+	nIntegerer >> nChunkSize; // assign chunk size
 	int nLastChunkSize = nChunkSize;
 	int nPartNumber = 1;
 	string sDestinationFile;
 	
-	if(fSource.is_open()) {
-		fSource.seekg(0, ios::beg);
-		while(fSource.tellg() < nSize){
+	if(fSource.is_open()) { // check if file is open
+		fSource.seekg(0, ios::beg); // get beginning of file
+		while(fSource.tellg() < nSize){ // while there is still data to export
 
-		fSource.seekg(nGetPointer, ios::beg);
-		if(nGetPointer + nChunkSize > pieceSize) {
+		fSource.seekg(nGetPointer, ios::beg); // increment placement in stream
+		if(nGetPointer + nChunkSize > nSize) { // if handling last chunk
 			while(nGetPointer + nLastChunkSize > nSize) {
 				nLastChunkSize--;
 			}
@@ -70,8 +70,8 @@ void Metafile::generateChunks() {
 			fSource.read(sMemBlock, nLastChunkSize);	
 		} else {
 
-			sMemBlock = new char[nChunkSize];
-			fSource.read(sMemBlock, nChunkSize);
+			sMemBlock = new char[nChunkSize]; // assign memory
+			fSource.read(sMemBlock, nChunkSize); // read file data into memory
 		}
 
 		sDestinationFile = fileName;
@@ -82,11 +82,11 @@ void Metafile::generateChunks() {
 
 		cout << "Destination file: " << sDestinationFile << endl;
 		cout << "Chunk Size: " << nLastChunkSize << endl;
-		ofstream fDestination(sDestinationFile.c_str());
-		fDestination.write(sMemBlock, nLastChunkSize);
+		ofstream fDestination(sDestinationFile.c_str()); // create new file
+		fDestination.write(sMemBlock, nLastChunkSize); // write memory to file
 
-		nGetPointer += nChunkSize;
-		nPartNumber += 1;
+		nGetPointer += nChunkSize; // increment file stream pointer
+		nPartNumber += 1; 
 		}
 	}
 }
