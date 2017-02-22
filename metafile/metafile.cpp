@@ -13,7 +13,6 @@ using namespace metafile;
 Metafile::Metafile(string filename){
 	getFileSize(filename);
 	fileName = filename;
-
 	generateChunks();
 	bencode();
 }
@@ -56,7 +55,11 @@ void Metafile::generateChunks() {
 	int nLastChunkSize = nChunkSize;
 	int nPartNumber = 1;
 	string sDestinationFile;
-	
+	string str = "none";
+	char *none = &str[0u];
+	vector<char*> tmp(nSize, none);
+	bitfield = &tmp;
+
 	if(fSource.is_open()) { // check if file is open
 		fSource.seekg(0, ios::beg); // get beginning of file
 		while(fSource.tellg() < nSize){ // while there is still data to export
@@ -67,7 +70,8 @@ void Metafile::generateChunks() {
 				nLastChunkSize--;
 			}
 			sMemBlock = new char[nLastChunkSize];
-			fSource.read(sMemBlock, nLastChunkSize);	
+			fSource.read(sMemBlock, nLastChunkSize);
+			//fSource.read((*bitfield)[nPartNumber], nLastChunkSize);	
 		} else {
 
 			sMemBlock = new char[nChunkSize]; // assign memory

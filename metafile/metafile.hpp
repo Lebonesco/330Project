@@ -1,6 +1,9 @@
 #ifndef METAFILE_HPP_
 #define METAFILE_HPP_
 
+#include <vector>
+#include <string>
+
 using namespace std;
 
 namespace metafile {
@@ -20,6 +23,7 @@ public:
 	int optimisticUnchoking = 15;
 	int fileSize;
 	int pieceSize;
+	vector<char*> *bitfield;
 	string fileName;
 	string announce;
 };
