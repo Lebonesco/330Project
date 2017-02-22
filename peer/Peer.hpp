@@ -27,7 +27,7 @@ public:
 	int createSocket(std::string peerType);							//*
 	int connectToClient(const char* ipAddr, const char* port);		//*
 	int acceptConnection(int seederDescriptor);
-	int bindSocket(const char* ipAddr, int socketDescriptor);
+	int bindAndListenSocket(const char* ipAddr, int socketDescriptor);
 
 	//Peer, Seeder, Leecher functions
 	bool checkValidHandshake();

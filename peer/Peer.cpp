@@ -7,7 +7,7 @@
 
 /*
  *	Member function definitions for Peer class
- *	LAST EDITED: 2/20/17
+ *	LAST EDITED: 2/22/17
  */
 
 #include <unistd.h>			// included for 'close' function: automatically deallocates.
@@ -15,6 +15,7 @@
 #include <sys/types.h>		// defs of data types used in socket/netinet/etc..
 #include <sys/socket.h>		// defs of structs needed for sockets
 #include <netinet/in.h>		// constants and structs needed for net domain addresses
+#include <arpa/inet.h>		// for inet_ntop
 #include <cstring>			// for 'memset' as of right now
 #include <string>			// for 'to_string'
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
@@ -110,8 +111,55 @@ int Peer::acceptConnection(int seederDesc){
 
 }
 
-int Peer::bindSocket(const char* ipAddr, int socketDesc){
-	// Working on it..
+int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
+	/*	*Bind to socket and Listen for connections*
+	 * 	 status: current status of listening
+	 * 	 listener: socket descriptor of socket to listen for
+	 */
+	int status, listener;
+
+	//assign listener socket
+	listener = socketDesc;
+
+	//listen for incoming connection w/backlog up to 10
+	status = listen(listener, 10);
+
+	/*
+	  newConnFD: variable to hold file descriptor for new connection
+	  clientAddr: struct to hold client address data
+	  addrSize: size of address
+	  s: array to hold IPv6 address, (INET6... = 46: length of IPv6 address)
+	 */
+
+	int newConnFD;
+	struct sockaddr_storage clientAddr;
+	socklen_t addrSize;
+	char s[INET6_ADDRSTRLEN];
+
+	// set address size to size of client address struct
+	addrSize = sizeof(clientAddr);
+
+	//loop for connections
+	while(1){
+		//accept connection request and assign connection info to connection file descriptor variable
+		newConnFD = accept(listener, (sockaddr*) &clientAddr, &addrSize);
+		if(newConnFD < 0){
+			cout << "Error.";
+			continue;
+		}
+
+		//converts internet network address to string in internet standard format
+		inet_ntop(clientAddr.ss_family, (sockaddr*) &clientAddr, s, sizeof(s));		// might need helper function to return correct val for IPv4 or IPV6
+
+		//send message to connected peer
+		status = send(newConnFD, "Connected", 9, 0);
+
+		//close if status code is -1
+		if(status == -1){
+			close(newConnFD);
+			_exit(3);
+		}
+	}
 }
 
 // Create a 'Have' message to send to another Peer
