@@ -13,6 +13,7 @@ public:
 	void getFileSize(string file);
 	void bencode();
 	void generateChunks();
+	void combineChunks(int nParts);
 public:
 	int numberOfPreferedNeighbors = 2;
 	int unchokingInterval = 5;
