@@ -5,19 +5,22 @@ LIBS = -lm
 
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -c
+CFLAGS = -std=c99 -g
 CXXFLAGS = -std=c++11 -g
 
-metafile: $(OBJECTS)
 
-main.o: main.cpp main.hpp
-	$(CXX) $(CXXFLAGS) main.cpp
+
+metafile: metafile.o main.o bencode.o 
+	$(CXX) $(CXXFLAGS) metafile.o main.o bencode.o  -o metafile 
 
 metafile.o: metafile.cpp metafile.hpp
-	$(CXX) $(CXXFLAGS) metafile.cpp
+	$(CXX) -c $(CXXFLAGS) metafile.cpp
+
+main.o: main.cpp
+	$(CXX) -c $(CXXFLAGS) main.cpp metafile.cpp
 
 bencode.o: bencode.c bencode.h list.h
-	$(CC) $(CCFLAGS) bencode.c
+	$(CC) -c $(CCFLAGS) bencode.c
 
 
 clean:
