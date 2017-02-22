@@ -24,8 +24,8 @@ public:
 	Peer();
 
 	//Server Specific functions
-	int createSocket(std::string peerType);
-	int connectToClient(const char* ipAddr, const char* port);
+	int createSocket(std::string peerType);							//*
+	int connectToClient(const char* ipAddr, const char* port);		//*
 	int acceptConnection(int seederDescriptor);
 	int bindSocket(const char* ipAddr, int socketDescriptor);
 
@@ -42,8 +42,8 @@ public:
 	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
 
 	//Message & Piece Functions
-	std::string createHaveMSG(int piece);
-	std::string createInterestedMSG();
+	std::string createHaveMSG(int piece);									//*
+	std::string createInterestedMSG();										//*
 	std::string getBitfieldMSG(std::string message);
 	std::string createPieceMSG(int piece, long start, std::string data);
 	std::string createBitfieldMSG();
@@ -57,6 +57,11 @@ public:
 	//Not quite sure the best way to do these yet
 	std::string getPeerId();	//what to pass?
 	std::string getPeerPort();	//^^
+	std::string peerIPAndPort(struct sockaddr_in &clientInfo);				//*
+
+	//Other functions of value?
+	void setOutputFileName(const char* name);								//*
+
 };
 
 

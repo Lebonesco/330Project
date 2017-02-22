@@ -11,11 +11,12 @@
  */
 
 #include <unistd.h>			// included for 'close' function: automatically deallocates.
-#include <iostream>
+#include <iostream>			// standard input/output stream
 #include <sys/types.h>		// defs of data types used in socket/netinet/etc..
 #include <sys/socket.h>		// defs of structs needed for sockets
 #include <netinet/in.h>		// constants and structs needed for net domain addresses
 #include <cstring>			// for 'memset' as of right now
+#include <string>			// for 'to_string'
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include "Peer.hpp"
 
@@ -111,4 +112,29 @@ int Peer::acceptConnection(int seederDesc){
 
 int Peer::bindSocket(const char* ipAddr, int socketDesc){
 	// Working on it..
+}
+
+// Create a 'Have' message to send to another Peer
+string Peer::createHaveMSG(int piece){
+	string message = "type:HAVE|piece:" + piece;
+	return message;
+}
+
+// Create an 'Interested' message to send to another Peer
+string Peer::createInterestedMSG(){
+	string message = "type:INTERESTED";
+	return message;
+}
+
+// Return a string with the Peer port and IP numbers
+string Peer::peerIPAndPort(struct sockaddr_in &clientInfo){
+
+	char *peerIP = inet_ntoa(clientInfo.sin_addr);		//converts IPv4 address to ASCII string
+	int port = ntohs(clientInfo.sin_port);				//converts IP address to host byte order
+	return string(peerIP) + ":" + to_string(port);		//to_string will report an error due to a problem w/ eclipse
+}
+
+// Change Peer output filename
+void Peer::setOutputFileName(const char* name){
+	filename = name;
 }
