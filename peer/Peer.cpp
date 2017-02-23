@@ -34,8 +34,7 @@ int Peer::createSocket(string peerType){
 	// if peerType == seeder....
 	// if Leecher....
 
-	//If socket creation fails
-	if(socketDesc == -1){
+	if(socketDesc == -1){			//If socket creation fails
 		cout << "Error with opening socket.\n";
 	}
 	return socketDesc;
@@ -51,28 +50,21 @@ int Peer::connectToClient(const char* ipAddr, const char* port){
 
 	struct addrinfo devInfo, *ptrToDevInfo;
 
-	//set values of addrinfo struct to 0
-	memset(&devInfo, 0, sizeof(devInfo));
+	memset(&devInfo, 0, sizeof(devInfo));	//set values of addrinfo struct to 0
 
 	devInfo.ai_family = AF_INET;			// or can set to AF_UNSPEC for unspecified
 	devInfo.ai_socktype = SOCK_STREAM;		// TCP socket
 
-	// create new socket
-	int sockDesc = createSocket("");
+	int sockDesc = createSocket("");		// create new socket
+	int connectionStatus = getaddrinfo(ipAddr, port, &devInfo, &ptrToDevInfo);		// get desired connection's info
 
-	// get desired connection's info
-	int connectionStatus = getaddrinfo(ipAddr, port, &devInfo, &ptrToDevInfo);
-
-	// check to make sure information was acquired
-	if(connectionStatus != 0){
+	if(connectionStatus != 0){				// check to make sure information was acquired
 		cout << "Attempt to get destination info failed.\n";
 	}else{
 
-		// attempt connection
-		connectionStatus = connect(sockDesc, ptrToDevInfo->ai_addr, ptrToDevInfo->ai_addrlen);
+		connectionStatus = connect(sockDesc, ptrToDevInfo->ai_addr, ptrToDevInfo->ai_addrlen);		// attempt connection
 
-		// check connection
-		if(connectionStatus != 0){
+		if(connectionStatus != 0){			// check connection
 			cout << "There was a connection error.\n";
 			close(sockDesc);
 			sockDesc = -1;
@@ -94,11 +86,8 @@ int Peer::acceptConnection(int seederDesc){
 	socklen_t sizeOfClientAddr;
 	sizeOfClientAddr = sizeof(clientInfo);
 
-	// attempt to accept connection
-	clientSocket = accept(seederDesc, (sockaddr*) &clientInfo, &sizeOfClientAddr);
-
-	// check if connection is valid
-	if(clientSocket == -1){
+	clientSocket = accept(seederDesc, (sockaddr*) &clientInfo, &sizeOfClientAddr); // attempt to accept connection
+	if(clientSocket == -1){							// check if connection is valid
 		cout << "Connection to client failed.\n";
 	}else{
 		/* to do...
@@ -118,11 +107,8 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	 */
 	int status, listener;
 
-	//assign listener socket
-	listener = socketDesc;
-
-	//listen for incoming connection w/backlog up to 10
-	status = listen(listener, 10);
+	listener = socketDesc;				//assign listener socket
+	status = listen(listener, 10);		//listen for incoming connection w/backlog up to 10
 
 	/*
 	  newConnFD: variable to hold file descriptor for new connection
@@ -136,13 +122,10 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	socklen_t addrSize;
 	char s[INET6_ADDRSTRLEN];
 
-	// set address size to size of client address struct
-	addrSize = sizeof(clientAddr);
+	addrSize = sizeof(clientAddr);		// set address size to size of client address struct
 
-	//loop for connections
-	while(1){
-		//accept connection request and assign connection info to connection file descriptor variable
-		newConnFD = accept(listener, (sockaddr*) &clientAddr, &addrSize);
+	while(1){							//loop for connections
+		newConnFD = accept(listener, (sockaddr*) &clientAddr, &addrSize);		//accept connection request and assign connection info to connection file descriptor variable
 		if(newConnFD < 0){
 			cout << "Error.";
 			continue;
@@ -151,11 +134,9 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 		//converts internet network address to string in internet standard format
 		inet_ntop(clientAddr.ss_family, (sockaddr*) &clientAddr, s, sizeof(s));		// might need helper function to return correct val for IPv4 or IPV6
 
-		//send message to connected peer
-		status = send(newConnFD, "Connected", 9, 0);
+		status = send(newConnFD, "Connected", 9, 0);		//send message to connected peer
 
-		//close if status code is -1
-		if(status == -1){
+		if(status == -1){									//close if status code is -1
 			close(newConnFD);
 			_exit(3);
 		}
