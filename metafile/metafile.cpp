@@ -72,13 +72,11 @@ void Metafile::generateChunks() {
 			sMemBlock = new char[nLastChunkSize];
 			fSource.read(sMemBlock, nLastChunkSize);
 			//(*bitfield)[nPartNumber] = sMemBlock;
-			//cout << (*bitfield)[nPartNumber] << endl;
 		} else {
 
 			sMemBlock = new char[nChunkSize]; // assign memory
 			fSource.read(sMemBlock, nChunkSize); // read file data into memory
-			(*bitfield)[nPartNumber] = sMemBlock;
-			//cout << sMemBlock << endl;
+			(*bitfield)[nPartNumber-1] = sMemBlock;
 		}
 		
 		sDestinationFile = fileName;
@@ -103,7 +101,7 @@ void Metafile::generateChunks() {
 			cout << (*it) << endl;			
 		}
 		
-	//combineChunks(nPartNumber-1);
+	combineChunks(nPartNumber-1);
 	}
 }
 
