@@ -13,7 +13,11 @@
 
 #ifndef BENCODE_H
 #define BENCODE_H
-
+#include <stdlib.h>
+#include <wchar.h>
+#include <stdio.h>
+#include <string.h>
+#include <stddef.h>
 #include "list.h"
 
 typedef struct be_str { // data encoding of bencode can be anything,
