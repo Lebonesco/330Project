@@ -57,7 +57,7 @@ void Metafile::generateChunks() {
 	string sDestinationFile;
 	string str = "none";
 	char *none = &str[0u];
-	vector<char*> tmp(nSize, none);
+	vector<char*> tmp((nSize / nChunkSize) + 1, none);
 	bitfield = &tmp;
 
 	if(fSource.is_open()) { // check if file is open
@@ -71,13 +71,16 @@ void Metafile::generateChunks() {
 			}
 			sMemBlock = new char[nLastChunkSize];
 			fSource.read(sMemBlock, nLastChunkSize);
-			fSource.read((*bitfield)[nPartNumber], nLastChunkSize);	
+			//(*bitfield)[nPartNumber] = sMemBlock;
+			//cout << (*bitfield)[nPartNumber] << endl;
 		} else {
 
 			sMemBlock = new char[nChunkSize]; // assign memory
-			//fSource.read(sMemBlock, nChunkSize); // read file data into memory
+			fSource.read(sMemBlock, nChunkSize); // read file data into memory
+			(*bitfield)[nPartNumber] = sMemBlock;
+			//cout << sMemBlock << endl;
 		}
-
+		
 		sDestinationFile = fileName;
 		sDestinationFile.append(".part");
 		sStringer.str("");
@@ -92,6 +95,14 @@ void Metafile::generateChunks() {
 		nGetPointer += nChunkSize; // increment file stream pointer
 		nPartNumber += 1; 
 		}
+
+		cout << "map data: " << endl;
+		vector<char*>::iterator it = (*bitfield).begin();
+
+		for(it = (*bitfield).begin(); it != (*bitfield).end(); ++it) {
+			cout << (*it) << endl;			
+		}
+		
 	//combineChunks(nPartNumber-1);
 	}
 }

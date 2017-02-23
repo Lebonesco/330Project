@@ -5,7 +5,7 @@ LIBS = -lm
 
 CC = gcc
 CXX = g++
-CFLAGS = -std=c99 -g
+CCFLAGS = -std=c99 -g
 CXXFLAGS = -Wall -Werror -std=c++11 -g
 
 input = metafile.o main.o bencode.o
@@ -20,7 +20,7 @@ main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) main.cpp metafile.cpp
 
 bencode.o: bencode.c bencode.h list.h
-	$(CC) -c $(CCFLAGS) bencode.c
+	$(CC) -c $(CFLAGS) bencode.c
 
 
 clean:
