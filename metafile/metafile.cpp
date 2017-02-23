@@ -115,7 +115,7 @@ void Metafile::combineChunks(int nParts) {
 	ofstream fRetour("recupe.avi"); // create destination file
 	for(nPartNumber = 1; nPartNumber <= nParts; nPartNumber++) {
 		cout << "file: " << nPartNumber << endl;
-		sChunkFile = "episode.avi";
+		sChunkFile = "file.txt";
 		sChunkFile.append(".part");
 		sStringer.str("");
 		sStringer << nPartNumber;
