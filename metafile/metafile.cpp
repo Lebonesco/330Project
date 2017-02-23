@@ -5,7 +5,7 @@
 #include <string>
 #include "metafile.hpp"
 #include <cstring>
-
+//#include "bencode.h"
 using namespace std;
 using namespace metafile;
 //ifstream::ate - set the initial position at the end of the file
@@ -13,7 +13,6 @@ using namespace metafile;
 Metafile::Metafile(string filename){
 	getFileSize(filename);
 	fileName = filename;
-
 	generateChunks();
 	bencode();
 }
@@ -56,7 +55,11 @@ void Metafile::generateChunks() {
 	int nLastChunkSize = nChunkSize;
 	int nPartNumber = 1;
 	string sDestinationFile;
-	
+	string str = "none";
+	char *none = &str[0u];
+	vector<char*> tmp(nSize, none);
+	bitfield = &tmp;
+
 	if(fSource.is_open()) { // check if file is open
 		fSource.seekg(0, ios::beg); // get beginning of file
 		while(fSource.tellg() < nSize){ // while there is still data to export
@@ -67,11 +70,12 @@ void Metafile::generateChunks() {
 				nLastChunkSize--;
 			}
 			sMemBlock = new char[nLastChunkSize];
-			fSource.read(sMemBlock, nLastChunkSize);	
+			fSource.read(sMemBlock, nLastChunkSize);
+			fSource.read((*bitfield)[nPartNumber], nLastChunkSize);	
 		} else {
 
 			sMemBlock = new char[nChunkSize]; // assign memory
-			fSource.read(sMemBlock, nChunkSize); // read file data into memory
+			//fSource.read(sMemBlock, nChunkSize); // read file data into memory
 		}
 
 		sDestinationFile = fileName;
@@ -88,5 +92,32 @@ void Metafile::generateChunks() {
 		nGetPointer += nChunkSize; // increment file stream pointer
 		nPartNumber += 1; 
 		}
+	//combineChunks(nPartNumber-1);
 	}
+}
+
+void Metafile::combineChunks(int nParts) {
+	string sChunkFile;
+	ostringstream sStringer;
+	int nPartNumber = 1;
+	char * sMemBlock;
+	ifstream::pos_type nSize;
+
+	ofstream fRetour("recupe.avi"); // create destination file
+	for(nPartNumber = 1; nPartNumber <= nParts; nPartNumber++) {
+		cout << "file: " << nPartNumber << endl;
+		sChunkFile = "episode.avi";
+		sChunkFile.append(".part");
+		sStringer.str("");
+		sStringer << nPartNumber;
+		sChunkFile.append(sStringer.str());
+		ifstream fChunk(sChunkFile.c_str(), ios::in|ios::binary|ios::ate); // open target file
+		nSize = fChunk.tellg(); // get size of file
+		sMemBlock = new char[nSize]; // allocate memory 
+		fChunk.seekg(0, ios::beg); // set stream to beginning
+		fChunk.read(sMemBlock, nSize); // read file to memory block
+		fChunk.close();	// close file stream
+		fRetour.write(sMemBlock, nSize); // write blockt to destination file
+	}
+	fRetour.close();
 }
