@@ -5,37 +5,58 @@
 
 using namespace std;
 
-
-
-string encode(int x) {
-		
-}
-
-string encode(string x) {
-
-}
-
-string encode(map<string, int> x) {
+string integerEncode(int x) {
 	string r;
-	int length;
+	r.append("i");
+	r.append(x);
+	r.append("e");
+	return r;
+}
+
+string stringEncode(string x) {
+	string r;
+	length = x.length();
+	r.append(length);
+	r.append(x);
+	return r;
+}
+
+template <typename T>
+template <typename K>
+string mapEncode(map<T, K> x) {
+	string r;
+	string kType, vType, k, v;
 	r.append("d");
-	map<string, int>::iterator it;
+	map<T, K>::iterator it;
 	
 	for(it = x.begin(); it != x.end(); ++it) {
-		length = (*it).length();
-		r.append(length);
-		r.append(":");
-		r.append((*it));
+		r.append(encode((*it)));
+		r.append(encode(x[(*it)]));
 	}
 	r.append("e");
 	return r;
 }
 
-int main(){
-	
-	
-	
+template <typename T>
+string encode(T x) {
+	string r;
+	string type = typeid(x).name();
+	if(type == i) {
+		r = integerEncode(x);
+	} else if(type == s) {
+		r = stringEncode(x);
 
+	} else if(type == d) {
+		r = mapEncode(x);
+
+	} else {
+		cout << "failure" << endl;
+	}
+	
+	return r;
+}
+
+int main(){
 
 	return 0;
 }
