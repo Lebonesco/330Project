@@ -1,33 +1,32 @@
 #include <vector>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <typeinfo>
 
 using namespace std;
 
-string integerEncode(int x) {
+string encode(int x) {
 	string r;
 	r.append("i");
-	r.append(x);
+	r.append(to_string(x));
 	r.append("e");
 	return r;
 }
 
-string stringEncode(string x) {
+string encode(string x) {
 	string r;
-	length = x.length();
+	int length = x.length();
 	r.append(length);
 	r.append(x);
 	return r;
 }
 
-template <typename T>
-template <typename K>
-string mapEncode(map<T, K> x) {
+template <typename K, typename T>
+string encode(map<T, K> x) {
 	string r;
-	string kType, vType, k, v;
 	r.append("d");
-	map<T, K>::iterator it;
+	map<T, K>::iterator it = x.begin();
 	
 	for(it = x.begin(); it != x.end(); ++it) {
 		r.append(encode((*it)));
@@ -38,25 +37,23 @@ string mapEncode(map<T, K> x) {
 }
 
 template <typename T>
-string encode(T x) {
+string encode(vector<T> x) {
 	string r;
-	string type = typeid(x).name();
-	if(type == i) {
-		r = integerEncode(x);
-	} else if(type == s) {
-		r = stringEncode(x);
-
-	} else if(type == d) {
-		r = mapEncode(x);
-
-	} else {
-		cout << "failure" << endl;
-	}
+	r.append("l");
+	vector<T>::iterator it = x.begin();
 	
+	for(it = x.begin(); it != x.end(); ++it) {
+		r.append(encode((*it)));
+	}
+	r.append("e");
 	return r;
 }
 
 int main(){
+	string r;	
+	int tmp = 5;
+	r = encode(tmp);
+	cout << r << endl;
 
 	return 0;
 }

@@ -13,14 +13,14 @@ input = metafile.o main.o bencode.o
 metafile: $(input) 
 	$(CXX) $(CXXFLAGS) $(input) -o $@ 
 
-metafile.o: metafile.cpp metafile.hpp
-	$(CXX) -c $(CXXFLAGS) metafile.cpp
+metafile.o: metafile.cpp metafile.hpp 
+	$(CXX) -c $(CXXFLAGS) metafile.cpp 
 
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) main.cpp metafile.cpp
 
 bencode.o: bencode.c bencode.h list.h
-	$(CC) -c $(CFLAGS) bencode.c
+	$(CC) -c $(CCFLAGS) bencode.c
 
 
 clean:

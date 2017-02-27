@@ -5,7 +5,11 @@
 #include <string>
 #include "metafile.hpp"
 #include <cstring>
-//#include "bencode.h"
+
+extern "C" {
+#include "bencode.h"
+}
+
 using namespace std;
 using namespace metafile;
 //ifstream::ate - set the initial position at the end of the file
