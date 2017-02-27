@@ -7,7 +7,7 @@
 
 /*
  *	Member function definitions for Peer class
- *	LAST EDITED: 2/22/17
+ *	LAST EDITED: 2/24/17
  */
 
 #include <unistd.h>			// included for 'close' function: automatically deallocates.
@@ -19,6 +19,7 @@
 #include <cstring>			// for 'memset' as of right now
 #include <string>			// for 'to_string'
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
+#include <openssl/sha.h>	// include for SHA1 doesn't work yet because I need to configue my build but the function is correct
 #include "Peer.hpp"
 
 using namespace std;
@@ -155,15 +156,107 @@ string Peer::createInterestedMSG(){
 	return message;
 }
 
-// Return a string with the Peer port and IP numbers
+string Peer::createAvailableMSG(){
+	/*	*General Process*
+	 *	 Return string of available pieces based on checking the Peer's bitfield
+	 */
+
+	string availableBits = "placeholder for now";		// needs to be the string representation of the Peer's bitfield
+	string message = "type:BITFIELD|" + availableBits;
+	return message;
+}
+
+string Peer::getAvailableMSG(string message){
+	/*	*Process received available bitfield message*
+	 * 	 Return available bitfield as a string
+	 */
+
+	stringstream ss(message);	//ss w/ copy of recieved bitfield message
+	string del;					//delimiter variable
+
+	getline(ss,del,'|');
+	getline(ss,del);
+	return ss.str();
+}
+
+int Peer::createPieceRequest(int index, long start, int length){
+	/*	*Create message to request a piece based on returned Peer bitfield*
+	 *
+	 */
+
+	stringstream ss;
+
+	ss << "type:REQUEST";
+	ss << "|index:" << index;
+	ss << "|start:" << start;
+	ss << "|length:" << length;
+	return ss.str();
+}
+
+string Peer::createPieceMSG(int piece, long start, string data){
+	//Creates a piece message to send to a leecher
+
+	stringstream ss;
+
+	ss << "type:PIECE";
+	ss << "|index:" << piece;
+	ss << "|start:" << start;
+	ss << "|data:" << data;
+
+	return ss.str();
+}
+
+int Peer::writePieceMSG(string message){
+	// Write the piece from the seeder to the leecher's file
+
+	int writeStatus = 1;
+	string temp;
+	int index;
+	long start;
+	stringstream ss(message);	//ss w/ copy of received piece message
+	string token;
+
+	getline(ss, token, '|');
+	getline(ss, token, '|');
+	temp = token.substr(token.find(':') + 1, token.length() - 1);
+	index = stoi(temp);		//converts string value to int
+
+	getline(ss, token, '|');
+	temp = token.substr(token.find(':') + 1, token.length() - 1);
+	start = stoi(temp);
+
+	// Variables have been assigned, not exactly sure how to handle the actual
+	// writing yet so I'm gonna leave it here for now.
+	// .
+	// .
+	// .
+}
+
+string Peer::createHash(string text){
+	//	create the SHA-1 hash for a piece of text
+
+	char hash[21];
+	char output[41];
+	memset(hash, '\0', 21);
+	memset(output, '\0', 41);
+
+	SHA1((unsigned char*) text.c_str(), text.length(), (unsigned char*) hash);		//doesn't currently work b/c of include issue
+	for(int i = 0; i < 20; i++){
+		sprintf(output + i * 2, "02x", (unsigned int) hash[i]);
+	}
+	return string(output);		//returns hash of 'text'
+}
+
 string Peer::peerIPAndPort(struct sockaddr_in &clientInfo){
+	//	*Return a string with the Peer port and IP numbers*
 
 	char *peerIP = inet_ntoa(clientInfo.sin_addr);		//converts IPv4 address to ASCII string
 	int port = ntohs(clientInfo.sin_port);				//converts IP address to host byte order
 	return string(peerIP) + ":" + to_string(port);		//to_string will report an error due to a problem w/ eclipse
 }
 
-// Change Peer output filename
 void Peer::setOutputFileName(const char* name){
+	// Change Peer output filename
+
 	filename = name;
 }

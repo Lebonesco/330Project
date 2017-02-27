@@ -24,10 +24,10 @@ public:
 	Peer();
 
 	//Server Specific functions
-	int createSocket(std::string peerType);							//*
-	int connectToClient(const char* ipAddr, const char* port);		//*
+	int createSocket(std::string peerType);								//*
+	int connectToClient(const char* ipAddr, const char* port);			//*
 	int acceptConnection(int seederDescriptor);
-	int bindAndListenSocket(const char* ipAddr, int socketDescriptor);
+	int bindAndListenSocket(const char* ipAddr, int socketDescriptor);	//*
 
 	//Peer, Seeder, Leecher functions
 	bool checkValidHandshake();
@@ -37,19 +37,19 @@ public:
 	void requestDataFromSeeders(int seederSocket, int pieceToRequest);
 
 	//Hash functions
-	std::string getHash(std::string text);
+	std::string createHash(std::string text);
 	int checkPieceHash(std::string pieceData, int pieceNum); //check w/server based on piece number
 	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
 
 	//Message & Piece Functions
 	std::string createHaveMSG(int piece);									//*
 	std::string createInterestedMSG();										//*
-	std::string getBitfieldMSG(std::string message);
+	std::string getAvailableMSG(std::string message);
 	std::string createPieceMSG(int piece, long start, std::string data);
-	std::string createBitfieldMSG();
+	std::string createAvailableMSG();
 	int createPieceRequest(int index, long start, int length);
 	int sendPieceRequest(int socketDescriptor, int index);
-	int getPieceMSG(std::string message);
+	int writePieceMSG(std::string message);		//get
 	int getRequestedPiece(std::string message);
 	void readSeederMSG(std::string data, int socketDescriptor);
 	void readLeecherMSG(std::string data, int socketDescriptor);
