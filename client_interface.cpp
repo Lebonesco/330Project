@@ -4,18 +4,19 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include <errno>
+#include <unistd>
+#include <netdb>
+#include <sys/types>
+#include <netinet/in>
+#include <sys/socket>
+#include <arpa/inet>
 using namespace std;
 
-void getUserData(int s_port, int c_port, char u_or_d) {
-	
-	cout << "Please enter the server port number you would like to connect to: ";
-	cin >> s_port;
-	cout << "Server Port:  " << s_port << endl;
-	
+#define PORT 3490
+#define MAXDATASIZE 100
 
-	cout << "Please enter in your desired client port number between (___ ): "; 
-	cin >> c_port;
-	cout << "Client Port:  " << c_port << endl;
+void getUserData(char u_or_d) {
 
 	//check to make sure user entered either upload or download
 	while ((strcmp(u_or_d, 'd') != 0) || (strcmp(u_or_d, 'u') != 0)) {
@@ -25,6 +26,72 @@ void getUserData(int s_port, int c_port, char u_or_d) {
 	}
 	
 }
+
+//connect to the server using socket connections
+Client::get_in_addr(struct sockaddr *sr) {
+	if (sa->sa_family === AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	}
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+//check if connection was successful
+Client::connection_made() {
+	if (argc != 2) {
+        	fprintf(stderr,"usage: client hostname\n");
+        	exit(1);
+    	}
+
+    	memset(&hints, 0, sizeof hints);
+    	hints.ai_family = AF_UNSPEC;
+    	hints.ai_socktype = SOCK_STREAM;
+
+    	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+        	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        	return 1;
+    	}
+
+    	// loop through all the results and connect to the first we can
+    	for(p = servinfo; p != NULL; p = p->ai_next) {
+    	    if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            	perror("client: socket");
+            	continue;
+        	}
+	
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            	close(sockfd);
+            	perror("client: connect");
+            	continue;
+            }
+
+            break;
+    	}
+
+    	if (p == NULL) {
+        	fprintf(stderr, "client: failed to connect\n");
+        	return 2;
+    	}
+
+    	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
+    	printf("client: connecting to %s\n", s);
+
+    	freeaddrinfo(servinfo); // all done with this structure
+	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+        	perror("recv");
+        	exit(1);
+    	}
+
+    	buf[numbytes] = '\0';
+
+    	printf("client: received '%s'\n",buf);
+
+}
+
+//close connection to server
+Client::close_connnection() {
+	close(sockfd);
+}
+
 //get user input on path of file to upload
 void getPath() {
 	std::string path;
@@ -62,11 +129,9 @@ void getDownloadFile() {
 }
 
 int main () {
-	int serverPort;
-	int clientPort;
 	char upORdown = 'a';
 
-	getUserData(serverPort, clientPort, upORdown);
+	getUserData( upORdown);
 	if (upORdown == 'u') {
 		//read in the path to the file the user would like to upload
 		getPath();
