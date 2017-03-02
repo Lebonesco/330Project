@@ -7,12 +7,26 @@
 #include <string>
 #include <vector>
 #include <list>
-
+#include <netinet/in.h>
 
 class Client {
 
+public:
+	Client();
+	bool connection(int argc, char *argv[]);
+	bool send_data(std::string data);
+	std::string receive(int size); 
+	void close_connection();	
+private:
+	int sock;			//holds socket
+	std::string server;		//address of server
+	int port;			//predefined port number of server
+	struct sockaddr_in sock_addr;	//socket address	
+
+
+/*
 	public:
-		string path;
+		String path;
 		int sockfd;
 		int numBytes;
 		char buf[100];
@@ -22,11 +36,11 @@ class Client {
 		
 		Client();
 
-		void get_in_address(struct sockaddr *sa);
-		void connection_made();
+		void get_in_addr(struct sockaddr *sa);
+		int connection(int argc, char *argv[]);
 		void close_connection();		
 	private:
-
+*/
 
 };
 
