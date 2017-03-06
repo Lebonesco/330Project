@@ -1,15 +1,3 @@
-/*
- * Peer.cpp
- *
- *  Created on: Feb 16, 2017
- *      Author: Austin
- */
-
-/*
- *	Member function definitions for Peer class
- *	LAST EDITED: 2/24/17
- */
-
 #include <unistd.h>			// included for 'close' function: automatically deallocates.
 #include <iostream>			// standard input/output stream
 #include <sys/types.h>		// defs of data types used in socket/netinet/etc..
@@ -32,8 +20,10 @@ int Peer::createSocket(string peerType){
 	int socketDesc;
 	socketDesc = socket(AF_INET, SOCK_STREAM, 0);
 
-	// if peerType == seeder....
-	// if Leecher....
+	// if peerType == seeder 
+	if(peerType == string("SEEDER")){
+		fcntl(socketDesc, F_SETFL, O_NONBLOCK);
+	}
 
 	if(socketDesc == -1){			//If socket creation fails
 		cout << "Error with opening socket.\n";
@@ -57,7 +47,7 @@ int Peer::connectToClient(const char* ipAddr, const char* port){
 	devInfo.ai_socktype = SOCK_STREAM;		// TCP socket
 
 	int sockDesc = createSocket("");		// create new socket
-	int connectionStatus = getaddrinfo(ipAddr, port, &devInfo, &ptrToDevInfo);		// get desired connection's info
+	int connectionStatus = getaddrinfo(ipAddr, port, &devInfo, &ptrToDevInfo);		// populate devInfo
 
 	if(connectionStatus != 0){				// check to make sure information was acquired
 		cout << "Attempt to get destination info failed.\n";
@@ -90,93 +80,134 @@ int Peer::acceptConnection(int seederDesc){
 	clientSocket = accept(seederDesc, (sockaddr*) &clientInfo, &sizeOfClientAddr); // attempt to accept connection
 	if(clientSocket == -1){							// check if connection is valid
 		cout << "Connection to client failed.\n";
-	}else{
-		/* to do...
-		 * .. get peer IP and port
-		 * .. verify handshake
-		 *
-		 */
 	}
 	return clientSocket;
 
 }
 
 int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
-	/*	*Bind to socket and Listen for connections*
-	 * 	 status: current status of listening
-	 * 	 listener: socket descriptor of socket to listen for
-	 */
-	int status, listener;
+	
+	int listener;			
+	int newClientSocket;
+	int recievedBytes;		// recieved size
+	int maxConnectedFD;
+	char * socketReadBuff;
+	vector<char> socketWriteBuffer;
+	fd_set connectedSocketFDs;
+	FD_ZERO(&connectedSocketFDs);		// set is initialized to 0
+	fd_set allFDs;
+	FD_ZERO(&allFDs);
+	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
+	int port = 8000;
 
-	listener = socketDesc;				//assign listener socket
-	status = listen(listener, 10);		//listen for incoming connection w/backlog up to 10
+	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
 
-	/*
-	  newConnFD: variable to hold file descriptor for new connection
-	  clientAddr: struct to hold client address data
-	  addrSize: size of address
-	  s: array to hold IPv6 address, (INET6... = 46: length of IPv6 address)
-	 */
-
-	int newConnFD;
-	struct sockaddr_storage clientAddr;
-	socklen_t addrSize;
-	char s[INET6_ADDRSTRLEN];
-
-	addrSize = sizeof(clientAddr);		// set address size to size of client address struct
-
-	while(1){							//loop for connections
-		newConnFD = accept(listener, (sockaddr*) &clientAddr, &addrSize);		//accept connection request and assign connection info to connection file descriptor variable
-		if(newConnFD < 0){
-			cout << "Error.";
-			continue;
-		}
-
-		//converts internet network address to string in internet standard format
-		inet_ntop(clientAddr.ss_family, (sockaddr*) &clientAddr, s, sizeof(s));		// might need helper function to return correct val for IPv4 or IPV6
-
-		status = send(newConnFD, "Connected", 9, 0);		//send message to connected peer
-
-		if(status == -1){									//close if status code is -1
-			close(newConnFD);
-			_exit(3);
-		}
+	if(listener != 0){
+		cout << "Error listening on selected Port" << endl;
 	}
+	else{
+
+		FD_SET(socketDesc, &allFDs);	// add socket FD to set of All FD's
+		maxConnectedFD = socketDesc;	// set max FD to socket passed in
+		cout << "Server ready for connections" << endl;
+		
+		while(1){
+
+			connectedSocketFDs = allFDs;
+
+			if(select(maxConnectedFD + 1, &connectedSocketFDs, NULL, NULL, NULL) == -1){	// need to add 1 to max
+				cout << "Error selecting File Descriptor (socket)" << endl;	
+			}
+			else{
+
+				for(int i = 0; i <= maxConnectedFD; i++){
+					// check if i is actually a stored connection
+					if(FD_ISSET(i, &connectedSocketFDs)){
+						recievedBytes = 0;
+						
+						// if the current socket is the host/server that was passed in
+						if(i == socketDesc){
+							newClientSocket = acceptConnection(socketDesc);
+
+							// if connection didn't fail
+							if(newClientSocket != -1){
+
+								FD_SET(newClientSocket, &allFDs);
+								if(newClientSocket > maxConnectedFD){
+									// set new max FD
+									maxConnectedFD = newClientSocket;
+									
+									// send bitfield to client
+									// AS OF NOW this may as well be a place holder since bitfield
+									// currently has no functionality!
+									send(newClientSocket, bitfield, sizeof(bitfield), 0);
+								}
+							}
+
+						}else{
+							// recieving data from a socket and performing some action
+
+							// MSG_PEEK looks at the next message to be recieved but
+							// does not actually read it
+							recievedBytes = recv(i, socketReadBuff, 1, MSG_PEEK);
+							while(recievedBytes > 0){
+								recievedBytes = recv(i, socketReadBuff, 64, 0);
+								socketWriteBuffer.insert(socketWriteBuffer.end(), socketReadBuff, socketReadBuff + recievedBytes);
+							}
+							// copy recieved message data to 'data' variable
+							string data = string(socketWriteBuffer.begin(), socketWriteBuffer.end());
+							socketWriteBuffer.clear();
+
+							// Take appropriate action based on message type
+							readSeederMSG(data, i);
+
+						}
+					}
+				}
+
+			}
+		}	
+
+	}
+
+}
+
+void Peer::readSeederMSG(string data, int socketDescriptor){
+	// 2 cases:
+	//		- bitfield message
+	//		- piece request
+
+	int bytesSent;
+
+	if(data.find("type:BITFIELD") != string::npos){
+		// .... needs to process bitfield and take appropriate action
+	}
+	if(data.find("type:REQUEST") != string::npos){
+		// .... needs to send appropriate piece
+		string pieceToSend = "A placeholder";
+		bytesSent = send(socketDescriptor, pieceToSend, pieceToSend.length(), 0);
+	}
+
+}
+
+void Peer::readLeecherMSG(string data, int socketDescriptor){
+	// Read recieved bitfield and update 
+
+	// Choose rarest piece to request
+
+	// update bitfield
+
+}
+
+int Peer::startSeeding(const char* ipAddr, const char* port){
+	// start seeding
+
 }
 
 // Create a 'Have' message to send to another Peer
 string Peer::createHaveMSG(int piece){
 	string message = "type:HAVE|piece:" + piece;
 	return message;
-}
-
-// Create an 'Interested' message to send to another Peer
-string Peer::createInterestedMSG(){
-	string message = "type:INTERESTED";
-	return message;
-}
-
-string Peer::createAvailableMSG(){
-	/*	*General Process*
-	 *	 Return string of available pieces based on checking the Peer's bitfield
-	 */
-
-	string availableBits = "placeholder for now";		// needs to be the string representation of the Peer's bitfield
-	string message = "type:BITFIELD|" + availableBits;
-	return message;
-}
-
-string Peer::getAvailableMSG(string message){
-	/*	*Process received available bitfield message*
-	 * 	 Return available bitfield as a string
-	 */
-
-	stringstream ss(message);	//ss w/ copy of recieved bitfield message
-	string del;					//delimiter variable
-
-	getline(ss,del,'|');
-	getline(ss,del);
-	return ss.str();
 }
 
 int Peer::createPieceRequest(int index, long start, int length){
@@ -193,6 +224,7 @@ int Peer::createPieceRequest(int index, long start, int length){
 	return ss.str();
 }
 
+// this might also be able to be done when piece request is received
 string Peer::createPieceMSG(int piece, long start, string data){
 	//Creates a piece message to send to a leecher
 
@@ -206,32 +238,7 @@ string Peer::createPieceMSG(int piece, long start, string data){
 	return ss.str();
 }
 
-int Peer::writePieceMSG(string message){
-	// Write the piece from the seeder to the leecher's file
-
-	int writeStatus = 1;
-	string temp;
-	int index;
-	long start;
-	stringstream ss(message);	//ss w/ copy of received piece message
-	string token;
-
-	getline(ss, token, '|');
-	getline(ss, token, '|');
-	temp = token.substr(token.find(':') + 1, token.length() - 1);
-	index = stoi(temp);		//converts string value to int
-
-	getline(ss, token, '|');
-	temp = token.substr(token.find(':') + 1, token.length() - 1);
-	start = stoi(temp);
-
-	// Variables have been assigned, not exactly sure how to handle the actual
-	// writing yet so I'm gonna leave it here for now.
-	// .
-	// .
-	// .
-}
-
+// ** leaving hash functionality until later **
 string Peer::createHash(string text){
 	//	create the SHA-1 hash for a piece of text
 

@@ -1,10 +1,3 @@
-/*
- * Peer.hpp
- *
- *  Created on: Feb 16, 2017
- *      Author: Austin
- */
-
 #ifndef PEER_HPP_
 #define PEER_HPP_
 #include <string>
@@ -12,7 +5,6 @@
 #include <list>
 
 class Peer{
-	//handshakeMsg handshake; **or can this not be a class?
 	int numPieces;
 	int *bitfield; //vector?
 	int *recievedBitfield;
@@ -30,7 +22,6 @@ public:
 	int bindAndListenSocket(const char* ipAddr, int socketDescriptor);	//*
 
 	//Peer, Seeder, Leecher functions
-	bool checkValidHandshake();
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::list ipPortList);
 	void getPeerData(std::list<int> seederList);
@@ -41,9 +32,7 @@ public:
 	int checkPieceHash(std::string pieceData, int pieceNum); //check w/server based on piece number
 	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
 
-	//Message & Piece Functions
-	std::string createHaveMSG(int piece);									//*
-	std::string createInterestedMSG();										//*
+	//Message & Piece Functions									
 	std::string getAvailableMSG(std::string message);
 	std::string createPieceMSG(int piece, long start, std::string data);
 	std::string createAvailableMSG();
@@ -55,9 +44,9 @@ public:
 	void readLeecherMSG(std::string data, int socketDescriptor);
 
 	//Not quite sure the best way to do these yet
-	std::string getPeerId();	//what to pass?
-	std::string getPeerPort();	//^^
-	std::string peerIPAndPort(struct sockaddr_in &clientInfo);				//*
+	//std::string getPeerId();	//what to pass?
+	//std::string getPeerPort();	//^^
+	//std::string peerIPAndPort(struct sockaddr_in &clientInfo);				//*
 
 	//Other functions of value?
 	void setOutputFileName(const char* name);								//*
