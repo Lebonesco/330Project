@@ -14,30 +14,30 @@ Chunk(int key, int val) {
 	val = val;
 }
 
-updateVal(int update) {
+void updateVal(int update) {
 	val = update;
 }
 
-updateKey(int update) {
+void updateKey(int update) {
 	key = update;
 }
 
-}
+};
 
 
 class ChunkQueue {
 public:
 	int size;
-	vector queue;
-	set values;
-	map indexMap;
+	vector<int> queue;
+	set<int> values;
+	map<int, int> indexMap;
 	
 ChunkQueue(int max) {
 	size = max;
-	queue.resize(max);
+	vector<int> queue(size, 1);
 }
 
-vector getQueue() {
+vector<int> getQueue() {
 	return queue;
 }
 	
@@ -82,7 +82,7 @@ void swap(int idx1, int idx2) {
 }
 
 void increaseKey(int idx, int update) {
-	queue[idx] == update
+	queue[idx] == update;
 
 	while(idx > 0) {	
 		parentIdx = parentIndex(idx);
@@ -142,7 +142,7 @@ void remove(int idx) {
 
 }
 
-void getChunk(set pos) {
+int getChunk(set<int> pos) {
 	
 	<vector<int>>::iterator it = queue.begin();
 	for(it = queue.begin(); it != queue.end(); ++it) {
@@ -158,5 +158,12 @@ void getChunk(set pos) {
 }
 
 
+int main() {
+		
+	ChunkQueue q = new ChunkQueue(10);
+	
 
+	return 0;
 }
+
+
