@@ -23,9 +23,8 @@ public:
 
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
-	int startLeeching(std::list ipPortList);
-	void getPeerData(std::list<int> seederList);
-	void requestDataFromSeeders(int seederSocket, int pieceToRequest);
+	int startLeeching(std::list ipAndPortList);
+	void updatePeersOfInterest(vector<int> seederList);
 
 	//Hash functions
 	std::string createHash(std::string text);
@@ -33,15 +32,10 @@ public:
 	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
 
 	//Message & Piece Functions									
-	std::string getAvailableMSG(std::string message);
 	std::string createPieceMSG(int piece, long start, std::string data);
-	std::string createAvailableMSG();
 	int createPieceRequest(int index, long start, int length);
-	int sendPieceRequest(int socketDescriptor, int index);
-	int writePieceMSG(std::string message);		//get
 	int getRequestedPiece(std::string message);
-	void readSeederMSG(std::string data, int socketDescriptor);
-	void readLeecherMSG(std::string data, int socketDescriptor);
+	void readRecvMSG(std::string data, int socketDescriptor);
 
 	//Not quite sure the best way to do these yet
 	//std::string getPeerId();	//what to pass?

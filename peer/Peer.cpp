@@ -159,7 +159,7 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 							socketWriteBuffer.clear();
 
 							// Take appropriate action based on message type
-							readSeederMSG(data, i);
+							readRecvMSG(data, i);
 
 						}
 					}
@@ -172,43 +172,108 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 
 }
 
-void Peer::readSeederMSG(string data, int socketDescriptor){
-	// 2 cases:
+void Peer::readRecvMsg(string data, int socketDescriptor){
+	// Handle all cases with one function:
 	//		- bitfield message
 	//		- piece request
 
 	int bytesSent;
 
 	if(data.find("type:BITFIELD") != string::npos){
-		// .... needs to process bitfield and take appropriate action
+		// .... needs to send bitfield to Leecher requesting it
+		int bitfieldToSend [3] = {0, 1, 0};			// *placeholder*
+		bytesSent = send(socketDescriptor, bitfieldToSend, sizeof(bitfieldToSend)); 
 	}
 	if(data.find("type:REQUEST") != string::npos){
 		// .... needs to send appropriate piece
 		string pieceToSend = "A placeholder";
 		bytesSent = send(socketDescriptor, pieceToSend, pieceToSend.length(), 0);
 	}
+	if(data.find("type:PIECE") != string::npos){
+		// Write 
+	}
 
 }
 
-void Peer::readLeecherMSG(string data, int socketDescriptor){
-	// Read recieved bitfield and update 
-
-	// Choose rarest piece to request
-
-	// update bitfield
-
-}
-
+// This will be for the client that has the complete file since it will not need
+// to request any peices from other clients at any time
 int Peer::startSeeding(const char* ipAddr, const char* port){
 	// start seeding
+	struct addrinfo machineInfo, *ptrToMachineInfo;
+	memset(&machineInfo, 0, sizeof(machineInfo));
+	int serverStatus;
+	int newServerSocket;
+	int serverDesc;
 
+	serverStatus = getaddrinfo(ipAddr, port, &machineInfo, &ptrToMachineInfo);
+	if(serverStatus == 0){
+		newServerSocket = createSocket("SEEDER");
+		int s = 1;
+		setsockopt(newServerSocket, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int));		// set socket options so address/port can be reused
+		serverStatus = bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
+		if(serverStatus == 0){
+			cout << "Seeder created on port" << port << endl;
+		}else{
+			cout << "Failed to bind seeder on port" << port << endl;
+		}
+	}
+
+	if(newServerSocket != 0){
+		cout << "Server is ready to listen" << endl;
+		bindAndListenSocket(ipAddr, newServerSocket);		// listen and manage connections
+	}
+
+	return 0;
 }
 
-// Create a 'Have' message to send to another Peer
-string Peer::createHaveMSG(int piece){
-	string message = "type:HAVE|piece:" + piece;
-	return message;
+int Peer::startLeeching(list<string> ipAndPortList){
+	// start leeching
+	vector<char> writeBuffer;
+	vector<int> seederList;
+	int maxLeecherFD;
+	int seederSocketFD;
+	int i = 0;
+	int recievedBytes;
+	string ip;
+	string port;
+	char* readBuffer = new char[100];		// or whatever size we need it to be
+	list<string>::iterator it;
+
+	for(it = ipAndPortList.begin(); it != ipAndPortList.end(); ++it){
+		//***FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
+		
+		ip = it->substr(0, it->find(':'));		// get ip		
+		port = it->substr(it->find(':') + 1, it->length());		// get port
+
+		seederSocketFD = connectToClient(ip, port);			//connect to seeder
+		if(seederSocketFD != -1){
+			seederList.push_back(seederSocketFD);			//add seeder to list of seeders
+			recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
+			while(recievedBytes > 0){
+				memset(readBuffer, '-1', 100);			//initialize buffer to -1's
+				recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
+				writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+			}
+			string data = string(writeBuffer.begin(), writeBuffer.end());
+			readRecvMsg(data, seederSocketFD);
+		}
+	}
+	if(seederList.size() > 0){
+		// need to update list and remove any seeders that no longer have useful data
+		// ***still need a function to do this so placeholder for now***
+		updatePeersOfInterest(seederList);
+	}
 }
+
+// Update list of which peers still have interesting data, remove those that don't
+void Peer::updatePeersOfInterest(vector<int> seederList){
+	
+}
+
+
+
+
+
 
 int Peer::createPieceRequest(int index, long start, int length){
 	/*	*Create message to request a piece based on returned Peer bitfield*
