@@ -19,7 +19,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#define PORT "8000"  // the port users will be connecting to
+#define PORT "8500"  // the port users will be connecting to
 
 #define BACKLOG 10     // how many pending connections queue will hold
 
@@ -53,7 +53,9 @@ int main(void)
     struct sigaction sa;
     int yes=1;
     char s[INET6_ADDRSTRLEN];
-    int rv;
+    int rv,n;
+    char buffer[16];
+    int pid;
     
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -117,6 +119,7 @@ int main(void)
     }
     int count = 0;
     
+    
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -125,12 +128,12 @@ int main(void)
             continue;
         }
         
-        
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
         count++;
+        
         
         printf("Number of peers: %d\n", count);
         // Reallocate array for new addresses that connected
@@ -146,6 +149,7 @@ int main(void)
             printf("%d) %s\n", i+1, data_array[i]);
         }
         
+        
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
@@ -155,8 +159,26 @@ int main(void)
                 free(ptr);
             }
             
-            // Send fake message to client
-            send(new_fd, "Bencoded message", 16, 0);
+            bzero(buffer,16);
+            n = recv(new_fd,buffer,15,0);
+            if (n < 0) perror("ERROR reading from socket");
+            
+            printf("Message from client: %s\n", buffer);
+            
+            if (strncmp(buffer,"download",8)==0){
+                // Send fake message to client
+                printf("Requested download\n");
+                send(new_fd, "Bencoded message", 16, 0);
+            }
+            else if (strncmp(buffer,"upload",6)==0){
+                printf("Requested upload\n");
+                send(new_fd, "Waiting for size", 16, 0);
+            }
+            else {
+                printf("Invalid entry\n");
+                send(new_fd, "Invalid entry",13,0);
+            }
+
             
             close(new_fd);
             exit(0);

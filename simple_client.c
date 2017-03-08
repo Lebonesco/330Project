@@ -18,7 +18,7 @@
 
 #include <arpa/inet.h>
 
-#define PORT "3490" // the port client will be connecting to
+#define PORT "8500" // the port client will be connecting to
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 
@@ -37,8 +37,9 @@ int main(int argc, char *argv[])
     int sockfd, numbytes;
     char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
-    int rv;
+    int rv,n;
     char s[INET6_ADDRSTRLEN];
+    char buffer[16];
     
     if (argc != 2) {
         fprintf(stderr,"usage: client hostname\n");
@@ -81,6 +82,13 @@ int main(int argc, char *argv[])
     printf("client: connecting to %s\n", s);
     
     freeaddrinfo(servinfo); // all done with this structure
+    
+    printf("Please enter the message: ");
+    bzero(buffer,16);
+    fgets(buffer,15,stdin);
+    n = send(sockfd,buffer,strlen(buffer),0);
+    if (n < 0)
+        perror("ERROR writing to socket");
     
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
         perror("recv");
