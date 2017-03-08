@@ -4,13 +4,20 @@
 
 DB_NAME=metafiles
 PORT=5432
+password=password
+
+cd sql
+cp create_tables.sql $HOME/postgres-data
+cd $HOME
+ls
+. postgres-data/config.sh
+expect: "Password:" { send "$password" }
 
 # remove teh db if it already exists
-drop -p $PORT $DB_NAME
+dropdb $DB_NAME
 
 # create db
-createdb -p $PORT $DB_NAME
+createdb $DB_NAME
 
 # insert tables into database
-cd sql
-psql $DB_NAME -f create_tables.sql
+psql $DB_NAME create_tables.sql

@@ -5,7 +5,11 @@
 #include <string>
 #include "metafile.hpp"
 #include <cstring>
-//#include "bencode.h"
+
+extern "C" {
+#include "bencode.h"
+}
+
 using namespace std;
 using namespace metafile;
 //ifstream::ate - set the initial position at the end of the file
@@ -57,7 +61,7 @@ void Metafile::generateChunks() {
 	string sDestinationFile;
 	string str = "none";
 	char *none = &str[0u];
-	vector<char*> tmp(nSize, none);
+	vector<char*> tmp((nSize / nChunkSize) + 1, none);
 	bitfield = &tmp;
 
 	if(fSource.is_open()) { // check if file is open
@@ -71,13 +75,14 @@ void Metafile::generateChunks() {
 			}
 			sMemBlock = new char[nLastChunkSize];
 			fSource.read(sMemBlock, nLastChunkSize);
-			fSource.read((*bitfield)[nPartNumber], nLastChunkSize);	
+			//(*bitfield)[nPartNumber] = sMemBlock;
 		} else {
 
 			sMemBlock = new char[nChunkSize]; // assign memory
-			//fSource.read(sMemBlock, nChunkSize); // read file data into memory
+			fSource.read(sMemBlock, nChunkSize); // read file data into memory
+			(*bitfield)[nPartNumber-1] = sMemBlock;
 		}
-
+		
 		sDestinationFile = fileName;
 		sDestinationFile.append(".part");
 		sStringer.str("");
@@ -92,7 +97,15 @@ void Metafile::generateChunks() {
 		nGetPointer += nChunkSize; // increment file stream pointer
 		nPartNumber += 1; 
 		}
-	//combineChunks(nPartNumber-1);
+
+		cout << "map data: " << endl;
+		vector<char*>::iterator it = (*bitfield).begin();
+
+		for(it = (*bitfield).begin(); it != (*bitfield).end(); ++it) {
+			cout << (*it) << endl;			
+		}
+		
+	combineChunks(nPartNumber-1);
 	}
 }
 
@@ -106,7 +119,7 @@ void Metafile::combineChunks(int nParts) {
 	ofstream fRetour("recupe.avi"); // create destination file
 	for(nPartNumber = 1; nPartNumber <= nParts; nPartNumber++) {
 		cout << "file: " << nPartNumber << endl;
-		sChunkFile = "episode.avi";
+		sChunkFile = "file.txt";
 		sChunkFile.append(".part");
 		sStringer.str("");
 		sStringer << nPartNumber;
