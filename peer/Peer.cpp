@@ -6,8 +6,10 @@
 #include <arpa/inet.h>		// for inet_ntop
 #include <cstring>			// for 'memset' as of right now
 #include <string>			// for 'to_string'
+#include <sstream>			// for stringstreams
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
-#include <openssl/sha.h>	// include for SHA1 doesn't work yet because I need to configue my build but the function is correct
+#include <fcntl.h>			// for fcntl()
+//#include <openssl/sha.h>	// include for SHA1 doesn't work yet because I need to configue my build but the function is correct
 #include "Peer.hpp"
 
 using namespace std;
@@ -169,25 +171,29 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 		}	
 
 	}
+	return listener;
 
 }
 
-void Peer::readRecvMsg(string data, int socketDescriptor){
+void Peer::readRecvMSG(string data, int socketDescriptor){
 	// Handle all cases with one function:
 	//		- bitfield message
 	//		- piece request
 
 	int bytesSent;
 
-	if(data.find("type:BITFIELD") != string::npos){
+	if(data.find("type:BITFIELDREQ") != string::npos){
 		// .... needs to send bitfield to Leecher requesting it
 		int bitfieldToSend [3] = {0, 1, 0};			// *placeholder*
-		bytesSent = send(socketDescriptor, bitfieldToSend, sizeof(bitfieldToSend)); 
+		bytesSent = send(socketDescriptor, bitfieldToSend, sizeof(bitfieldToSend), 0); 
+	}
+	if(data.find("type:BITFIELD") != string::npos){
+		//update
 	}
 	if(data.find("type:REQUEST") != string::npos){
 		// .... needs to send appropriate piece
 		string pieceToSend = "A placeholder";
-		bytesSent = send(socketDescriptor, pieceToSend, pieceToSend.length(), 0);
+		bytesSent = send(socketDescriptor, pieceToSend.c_str(), pieceToSend.length(), 0);		// need .c_str() to convert from standard string to c string
 	}
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
@@ -226,7 +232,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 	return 0;
 }
 
-int Peer::startLeeching(list<string> ipAndPortList){
+int Peer::startLeeching(list<string>& ipAndPortList){
 	// start leeching
 	vector<char> writeBuffer;
 	vector<int> seederList;
@@ -238,44 +244,86 @@ int Peer::startLeeching(list<string> ipAndPortList){
 	string port;
 	char* readBuffer = new char[100];		// or whatever size we need it to be
 	list<string>::iterator it;
+	fd_set peerFDs;
+	FD_ZERO(&peerFDs);
 
-	for(it = ipAndPortList.begin(); it != ipAndPortList.end(); ++it){
-		//***FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
-		
-		ip = it->substr(0, it->find(':'));		// get ip		
-		port = it->substr(it->find(':') + 1, it->length());		// get port
+	while(!fileComplete()){
+		//check for new Seeders
+		ipAndPortList = updateIpPortList();
 
-		seederSocketFD = connectToClient(ip, port);			//connect to seeder
-		if(seederSocketFD != -1){
-			seederList.push_back(seederSocketFD);			//add seeder to list of seeders
-			recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
-			while(recievedBytes > 0){
-				memset(readBuffer, '-1', 100);			//initialize buffer to -1's
-				recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
-				writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+		for(it = ipAndPortList.begin(); it != ipAndPortList.end(); ++it){
+			//***FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
+			
+			ip = it->substr(0, it->find(':'));		// get ip		
+			port = it->substr(it->find(':') + 1, it->length());		// get port
+
+			seederSocketFD = connectToClient(ip.c_str(), port.c_str());			//connect to seeder
+			if(!FD_ISSET(seederSocketFD, &peerFDs)){
+				FD_SET(seederSocketFD, &peerFDs);
+				if(seederSocketFD != -1){
+					seederList.push_back(seederSocketFD);			//add seeder to list of seeders
+					recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
+					while(recievedBytes > 0){
+						memset(readBuffer, 0, 100);			//initialize buffer to -1's
+						recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
+						writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+					}
+					string data = string(writeBuffer.begin(), writeBuffer.end());
+
+					//should be new client bitfield every time
+					readRecvMSG(data, seederSocketFD);
+				}
 			}
-			string data = string(writeBuffer.begin(), writeBuffer.end());
-			readRecvMsg(data, seederSocketFD);
+		}
+		if(seederList.size() > 0){
+			// need to update list and remove any seeders that no longer have useful data
+			// ***still need a function to do this so placeholder for now***
+			getPeerData(seederList);
 		}
 	}
-	if(seederList.size() > 0){
-		// need to update list and remove any seeders that no longer have useful data
-		// ***still need a function to do this so placeholder for now***
-		updatePeersOfInterest(seederList);
-	}
+}
+
+list<string> Peer::updateIpPortList(){
+	// needs to update port/ip from server
 }
 
 // Update list of which peers still have interesting data, remove those that don't
-void Peer::updatePeersOfInterest(vector<int> seederList){
-	
+void Peer::getPeerData(vector<int> seederList){
+
+	/*
+	while(1){
+		int x = 0;
+		int numFilePieces = 5; 					// placeholder
+		for(int j = 0; j < numFilePieces; j++){		// bitfield.length might be syntax error but for now its a placeholder
+			if(fileBitfield[bitfield[j]] != 1){			// if peer does not have current piece j
+				x = x % seederList.size();
+				cout << "Getting piece" << bitfield[j] << endl;
+				// send peice request
+
+			}
+		}else{
+
+		}
+	}
+	*/
+}
+
+bool Peer::fileComplete(){
+	// if all bitfield indices == 1 return true
+	int numFilePieces = 5;
+	for(int i = 0; i < numFilePieces; i++){
+		if(bitfield[i] != 1){
+			return false;
+		}
+		continue;
+	}
+	return true;
 }
 
 
 
 
-
-
-int Peer::createPieceRequest(int index, long start, int length){
+string Peer::createPieceRequest(int bfIndex){
 	/*	*Create message to request a piece based on returned Peer bitfield*
 	 *
 	 */
@@ -283,9 +331,7 @@ int Peer::createPieceRequest(int index, long start, int length){
 	stringstream ss;
 
 	ss << "type:REQUEST";
-	ss << "|index:" << index;
-	ss << "|start:" << start;
-	ss << "|length:" << length;
+	ss << "|index:" << bfIndex;
 	return ss.str();
 }
 
@@ -304,6 +350,7 @@ string Peer::createPieceMSG(int piece, long start, string data){
 }
 
 // ** leaving hash functionality until later **
+/*
 string Peer::createHash(string text){
 	//	create the SHA-1 hash for a piece of text
 
@@ -318,14 +365,7 @@ string Peer::createHash(string text){
 	}
 	return string(output);		//returns hash of 'text'
 }
-
-string Peer::peerIPAndPort(struct sockaddr_in &clientInfo){
-	//	*Return a string with the Peer port and IP numbers*
-
-	char *peerIP = inet_ntoa(clientInfo.sin_addr);		//converts IPv4 address to ASCII string
-	int port = ntohs(clientInfo.sin_port);				//converts IP address to host byte order
-	return string(peerIP) + ":" + to_string(port);		//to_string will report an error due to a problem w/ eclipse
-}
+*/
 
 void Peer::setOutputFileName(const char* name){
 	// Change Peer output filename
