@@ -372,3 +372,7 @@ void Peer::setOutputFileName(const char* name){
 
 	filename = name;
 }
+
+int main(){
+	return 0;
+}
