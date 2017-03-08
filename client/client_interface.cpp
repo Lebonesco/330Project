@@ -4,6 +4,9 @@
 #include <cstring>
 #include <string>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <fstream>
 #include <unistd.h>
 #include <sys/types.h>
@@ -12,14 +15,15 @@
 #include <netdb.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #include "client.hpp"
 using namespace std;
 
-#define PORT 3490
+#define PORT 9000
 #define MAXDATASIZE 100
 
 //figure out what the user wants to do
-void getUserData(char u_or_d) {
+void getUserData(char &u_or_d) {
 
 	//check to make sure user entered either upload or download
 	while ((u_or_d != 'u') || (u_or_d != 'd')) {
@@ -35,7 +39,6 @@ Client::Client() {
 	port = PORT;
 	server = "127.0.0.1";	//server is localhost
 	sock = -1;
-		
 }
 
 //check if connection was successful
@@ -104,14 +107,9 @@ std::string Client::receive(int size) {
 	return s_reply;
 }
 
-
-//close connection to server
-void Client::close_connection() {
-	close(sock);
-}
-
 //get user input on path of file to upload
-void getPath() {
+//open file and send it to server
+std::string Client::getUploadPath() {
 	std::string path;
 
 	cout << "Please enter the path to the file you would like to upload: ";
@@ -129,14 +127,52 @@ void getPath() {
         	cout << '\n';
 
        		ifstream file(path.c_str());
-	}	
+	}
 	
-	//upload file onto server?
+	return path;
+}
+
+long Client::getFileSize(std::string path) {
+
+	FILE *upload_file;
+	unsigned long file_size;
+
+	upload_file =  fopen(path.c_str(), "r");
 	
+	if (upload_file == NULL) {
+		cout << "File not found" << endl;
+	} else {
+		cout << "File " << upload_file << " found" << endl;
+		
+		fseek(upload_file, 0, SEEK_END);
+		file_size = ftell(upload_file);
+		cout << "File has " << file_size << " bytes." << endl;
+		rewind(upload_file);
+	}
+	
+	//send server message stating the file size
+	
+	
+	fclose(upload_file);
+	return file_size;
+}
+
+
+void Client::sendUploadFile(std::string path){
+
+	FILE *upload_file;
+
+	upload_file = fopen(path.c_str(), "r");
+
+	
+	
+	cout << "Done sending file" << endl;
+	fclose(upload_file);
+
 }
 
 //get user input on what file they would like to download
-void getDownloadFile() {
+int Client::chooseDownloadFile() {
 	int fileNum;
 
 	cout << "Enter number of file would you like to download: ";
@@ -144,7 +180,13 @@ void getDownloadFile() {
 	cout << "File number entered: " << fileNum << endl;
 
 	//connect to server and start downloading file?
+	
+	return fileNum;
+}
 
+//close connection to server
+void Client::close_connection() {
+	close(sock);
 }
 
 int main(int argc, char *argv[]) {
@@ -157,15 +199,20 @@ int main(int argc, char *argv[]) {
 	getUserData(upORdown);
 	if (upORdown == 'u') {
 		//read in the path to the file the user would like to upload
-		getPath();
+		c.getUploadPath();
 		//send server message that user wants to upload
+		c.send();
+		c. sendUploadFile();
 	} else {
 		//display the options of files to be downloaded
 		//get user input on which file they would like to download
-		getDownloadFile();
+		c.chooseDownloadFile();
 		//send client message that user wants to download
 		//server sends message of number of packages to be sent
+		c.send();
 		//recieve listing from server of downloadable files
+		c.recieve();
+		
 	}
 */
 
