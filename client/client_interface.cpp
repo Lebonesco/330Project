@@ -26,9 +26,9 @@ using namespace std;
 void getUserData(char &u_or_d) {
 
 	//check to make sure user entered either upload or download
-	while ((u_or_d != 'u') || (u_or_d != 'd')) {
+	while ((u_or_d != 'u') && (u_or_d != 'd')) {
 		cout << "Would you like to upload(u) or download(d) a file? ";
-        	cin >> u_or_d;
+        	cin >> &u_or_d;
         	cout << "Upload or Download: " << u_or_d << endl;
 	}
 	
@@ -113,8 +113,11 @@ std::string Client::getUploadPath() {
 	std::string path;
 
 	cout << "Please enter the path to the file you would like to upload: ";
-	std::getline(std::cin, path);
+	//std::getline(std::cin, path);
+	cin >> path;
 	cout << '\n';
+
+	cout << "Path: " << path << endl;
 
 	//look for file on thier system
 	ifstream file(path.c_str());
@@ -158,13 +161,11 @@ long Client::getFileSize(std::string path) {
 }
 
 
-void Client::sendUploadFile(std::string path){
+void Client::sendUploadInfo(std::string path){
 
 	FILE *upload_file;
 
-	upload_file = fopen(path.c_str(), "r");
-
-	
+	upload_file = fopen(path.c_str(), "r");	
 	
 	cout << "Done sending file" << endl;
 	fclose(upload_file);
@@ -178,8 +179,6 @@ int Client::chooseDownloadFile() {
 	cout << "Enter number of file would you like to download: ";
 	cin >> fileNum;
 	cout << "File number entered: " << fileNum << endl;
-
-	//connect to server and start downloading file?
 	
 	return fileNum;
 }
@@ -192,29 +191,43 @@ void Client::close_connection() {
 int main(int argc, char *argv[]) {
 
 	Client c;
+	int size = 512;
+	std::string message;
+	std::string path;
 	c.connection(argc, argv);
 
-/*
 	char upORdown = 'a';
 	getUserData(upORdown);
 	if (upORdown == 'u') {
+		//send server message that user wants to upload
+		message = "upload";
+		c.send_data(message);
+
 		//read in the path to the file the user would like to upload
 		c.getUploadPath();
-		//send server message that user wants to upload
-		c.send();
-		c. sendUploadFile();
+
+		//get message back from server
+		message = c.receive(size);
+
+		c.sendUploadInfo(path);
 	} else {
+		//send client message that user wants to download
+		message = "download";
+		c.send_data(message);
+
 		//display the options of files to be downloaded
 		//get user input on which file they would like to download
 		c.chooseDownloadFile();
-		//send client message that user wants to download
+
+
+		//connect to server and start downloading file?
+		//peer class?
+		
 		//server sends message of number of packages to be sent
-		c.send();
 		//recieve listing from server of downloadable files
-		c.recieve();
+//		c.receive(size);
 		
 	}
-*/
 
 	c.close_connection();
 

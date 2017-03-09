@@ -19,7 +19,7 @@ public:
 	std::string getUploadPath();
 	int chooseDownloadFile();
 	long getFileSize(std::string path);
-	void sendUploadFile(std::string path);
+	void sendUploadInfo(std::string path);
 	void close_connection();	
 private:
 	int sock;			//holds socket
