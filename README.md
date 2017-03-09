@@ -2,4 +2,4 @@
 
 
 
-This a Peer to Peer file sharing Application built off of the BitTorrent Protocal.
+This a Peer to Peer file sharing application built off of the BitTorrent Protocol.
