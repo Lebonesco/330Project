@@ -160,6 +160,7 @@ int main(void)
             }
             
             bzero(buffer,16);
+            // Receive message from client to see which repsone to send
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
             
@@ -171,10 +172,12 @@ int main(void)
                 send(new_fd, "Bencoded message", 16, 0);
             }
             else if (strncmp(buffer,"upload",6)==0){
+                // Request for size of files
                 printf("Requested upload\n");
                 send(new_fd, "Waiting for size", 16, 0);
             }
             else {
+                // Client sent an invalid message
                 printf("Invalid entry\n");
                 send(new_fd, "Invalid entry",13,0);
             }
