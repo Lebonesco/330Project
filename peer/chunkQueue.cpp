@@ -2,7 +2,7 @@
 #include <map>
 #include <set>
 #include "chunkQueue.hpp"
-
+#include <iostream>
 using namespace std;
 
 	
@@ -14,12 +14,26 @@ ChunkQueue::ChunkQueue(int max) {
 	indexMap = &tmpMap;
 	int i;
 	for(i =  0; i < max; ++i) {
+		cout << i << endl;
 		(*indexMap).insert(map<int, int>::value_type(i, i));
+	}
+
+	vector<int>::iterator it = (*queue).begin();
+	for(it = (*queue).begin(); it != (*queue).end(); ++it) {
+		cout << (*it) << endl;
 	}
 }
 
-vector<int> ChunkQueue::getQueue() {
-	return (*queue);
+ChunkQueue::~ChunkQueue() {}
+
+vector<int>* ChunkQueue::getQueue() {
+	cout << (*queue).size() << endl;
+	cout << (*queue).size() << endl;
+	vector<int>::iterator it = (*queue).begin();
+	//for(it = (*queue).begin(); it != (*queue).end(); ++it) {
+	//	cout << (*it) << endl;
+	//}
+	return queue;
 }
 	
 int ChunkQueue::getIndex(int val) {

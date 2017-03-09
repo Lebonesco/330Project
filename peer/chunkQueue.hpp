@@ -1,5 +1,5 @@
-#ifndef QUEUE_HPP_
-#define QUEUE_HPP_
+#ifndef CHUNKQUEUE_HPP_
+#define CHUNKQUEUE_HPP_
 
 #include <string>
 #include <map>
@@ -38,7 +38,7 @@ class ChunkQueue {
 		ChunkQueue(int max);
 		~ChunkQueue();
 		int getSize();
-		vector<int> getQueue();
+		vector<int>* getQueue();
 		int getChunk(set<int> values);
 		void updateQueue(vector<int> values);
 	private:
