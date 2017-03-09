@@ -1,51 +1,32 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "chunkQueue.hpp"
 
 using namespace std;
 
-class Chunk {
-public:
-	int key;
-	int val;
-
-Chunk(int key, int val) {
-	key = key;
-	val = val;
-}
-
-void updateVal(int update) {
-	val = update;
-}
-
-void updateKey(int update) {
-	key = update;
-}
-
-};
-
-
-class ChunkQueue {
-public:
-	int size;
-	vector<int> queue;
-	set<int> values;
-	map<int, int> indexMap;
 	
-ChunkQueue(int max) {
+ChunkQueue::ChunkQueue(int max) {
 	size = max;
-	vector<int> queue(size, 1);
+	vector<int> tmp(size, 1);
+	queue = &tmp;
+	map<int, int> tmpMap;
+	indexMap = &tmpMap;
+	int i;
+	for(i =  0; i < max; ++i) {
+		(*indexMap).insert(map<int, int>::value_type(i, i));
+	}
 }
 
-vector<int> getQueue() {
-	return queue;
+vector<int> ChunkQueue::getQueue() {
+	return (*queue);
 }
 	
-int getIndex(int val) {
-	return indexMap[val];
+int ChunkQueue::getIndex(int val) {
+	return (*indexMap)[val];
 } 
 
-int getSize() {
+int ChunkQueue::getSize() {
 	return size;
 }
 
@@ -69,25 +50,25 @@ int rightChildIndex(int idx) {
 	return idx;
 }
 
-void swap(int idx1, int idx2) {
-	int val1 = queue[idx1];
-	int val2 = queue[idx2];
+void ChunkQueue::swap(int idx1, int idx2) {
+	int val1 = (*queue)[idx1];
+	int val2 = (*queue)[idx2];
 
-	indexMap[val1] = idx1;
-	indexMap[val2] = idx2;
+	(*indexMap)[val1] = idx1;
+	(*indexMap)[val2] = idx2;
 
-	int tmp = queue[idx1];
-	queue[idx1] = queue[idx2];
-	queue[idx2] = tmp;
+	int tmp = (*queue)[idx1];
+	(*queue)[idx1] = (*queue)[idx2];
+	(*queue)[idx2] = tmp;
 }
 
-void increaseKey(int idx, int update) {
-	queue[idx] == update;
+void ChunkQueue::increaseKey(int idx, int update) {
+	(*queue)[idx] == update;
 
 	while(idx > 0) {	
-		parentIdx = parentIndex(idx);
+		int parentIdx = parentIndex(idx);
 
-		if(queue[idx] > queue[parentIdx]) {
+		if((*queue)[idx] > (*queue)[parentIdx]) {
 			swap(idx, parentIdx);
 			idx = parentIdx;
 		} else {
@@ -97,8 +78,8 @@ void increaseKey(int idx, int update) {
 	
 }
 
-void BubbleDown(int idx) {
-	int length = queue.size();
+void ChunkQueue::BubbleDown(int idx) {
+	int length = (*queue).size();
 	int leftChild = leftChildIndex(idx);
 	int rightChild = rightChildIndex(idx);
 
@@ -108,62 +89,49 @@ void BubbleDown(int idx) {
 
 	int maxIndex = idx;
 
-	if(queue[idx] < queue[leftChild]) {
+	if((*queue)[idx] < (*queue)[leftChild]) {
 		maxIndex = leftChild;
 	}
 
-	if((rightChild < length) && (queue[maxIndex] < queue[rightChild])) {
+	if((rightChild < length) && ((*queue)[maxIndex] < (*queue)[rightChild])) {
 		maxIndex = rightChild;
 	}
 
 	if(maxIndex != idx) {
-		// need to swap
-		int tmp = queue[idx];
-		queue[idx] = queue[maxIndex];
-		queue[maxIndex] = tmp;
+		swap(idx, maxIndex);
 		BubbleDown(maxIndex);
 	}
 
 	
 }
 
-void remove(int idx) {
-	int length = queue.size();
+void ChunkQueue::remove(int idx) {
+	int length = (*queue).size();
 	
 	if(length == 0) {
 		return;
 	}
 	
-	queue[idx] = queue[length-1];
-	queue.pop_back();
+	(*queue)[idx] = (*queue)[length-1];
+	(*queue).pop_back();
 	BubbleDown(0);
-
-	}
 
 }
 
-int getChunk(set<int> pos) {
+
+int ChunkQueue::getChunk(set<int> pos) {
 	
-	<vector<int>>::iterator it = queue.begin();
-	for(it = queue.begin(); it != queue.end(); ++it) {
-		const bool is_in = pos.find((*it) != pos.end());
+	vector<int>::iterator it = (*queue).begin();
+	for(it = (*queue).begin(); it != (*queue).end(); ++it) {
+		const bool is_in = pos.find((*it)) != pos.end();
 		if(is_in) {
 			// delete from queue and table
-			int idx = indexMap(*it);
+			int idx = (*indexMap)[(*it)];
 			size--;
 			remove(idx);
 			return (*it);
 		}
 	}
-}
-
-
-int main() {
-		
-	ChunkQueue q = new ChunkQueue(10);
-	
-
-	return 0;
 }
 
 
