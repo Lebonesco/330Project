@@ -19,7 +19,7 @@
 #include "client.hpp"
 using namespace std;
 
-#define PORT 9000
+#define PORT 8500
 #define MAXDATASIZE 100
 
 //figure out what the user wants to do
@@ -113,7 +113,6 @@ std::string Client::getUploadPath() {
 	std::string path;
 
 	cout << "Please enter the path to the file you would like to upload: ";
-	//std::getline(std::cin, path);
 	cin >> path;
 	cout << '\n';
 
@@ -126,7 +125,7 @@ std::string Client::getUploadPath() {
 		cout << "Error while opening the file" << endl;
 		
 		cout << "Reenter the path to the file: ";
-        	std::getline(std::cin, path);
+		cin >> path;
         	cout << '\n';
 
        		ifstream file(path.c_str());
