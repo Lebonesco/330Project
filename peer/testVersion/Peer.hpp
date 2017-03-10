@@ -5,12 +5,13 @@
 #include <list>
 
 class Peer{
+public:
 	int numPieces;
 	std::vector<int> bitfield;
 	std::vector<std::string> dataBitfield;
 	std::vector<std::string> ipPortList;
-	std::string selfIP;
-public:
+	const char* selfIP;
+//public:
 	Peer(const int numChunks, std::string iP, std::vector<std::string>& ipPortList, std::string type);
 
 	//Server Specific functions

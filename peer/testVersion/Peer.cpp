@@ -20,7 +20,7 @@ Peer::Peer(const int numChunks, string iP, vector<string>& recvIpPortList, strin
 	numPieces = numChunks;
 	ipPortList = recvIpPortList;
 	createBitfield(numChunks, type);
-	selfIP = iP;
+	selfIP = iP.c_str();
 
 }
 
@@ -240,7 +240,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 		setsockopt(newServerSocket, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int));		// set socket options so address/port can be reused
 		serverStatus = bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
 		if(serverStatus == 0){
-			cout << "Seeder created on port" << port << endl;
+			cout << "Seeder created on port " << port << endl;
 		}else{
 			cout << "Failed to bind seeder on port" << port << endl;
 		}
@@ -380,5 +380,18 @@ void Peer::createBitfield(int numChunks, string type, string data){
 }
 
 int main(){
+
+	int chunks = 5;
+	string testIP = "127.0.0.1";
+	vector<string> testList;
+	testList.push_back("127.0.0.1:8000");
+	string testPort = "8000";
+	const char* cTestPort = testPort.c_str();
+
+	Peer* seeder = new Peer(chunks, testIP, testList, "Leech");
+
+	cout << seeder->selfIP << endl;
+	seeder->startSeeding(seeder->selfIP, cTestPort);
+
 	return 0;
 }
