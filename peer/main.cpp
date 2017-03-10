@@ -5,18 +5,23 @@ using namespace std;
 
 int main() {
 	ChunkQueue queue (10);
+	queue.Display();
 	
-	vector<int>* items = queue.getQueue();
-	cout << (*items)[0] << endl;
-	cout << (*items).size() << endl;
-	cout << (*items).size() << endl;
+	vector<int> vec1;
+	vec1.push_back(3);
+	vec1.push_back(9);
+	queue.updateQueue(vec1);
+	queue.Display();
 
-	vector<int>::iterator it = (*items).begin();
-	//cout << (*items).size() << endl;
+	vector<int> vec2;
+	vec2.push_back(7);
+	queue.updateQueue(vec2);
+	queue.Display();
 
-	for(it = (*items).begin(); it != (*items).end(); ++it) {
-		//cout << (*it) << endl;
-		//cout << (*items)[(*it)] << endl;
-	}
+	queue.remove(0);
+	queue.Display();
+	
+	queue.remove(5);
+	queue.Display();
 	return 0;
 }
