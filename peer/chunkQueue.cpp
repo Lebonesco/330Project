@@ -8,31 +8,22 @@ using namespace std;
 	
 ChunkQueue::ChunkQueue(int max) {
 	size = max;
-	vector<int> tmp(size, 1);
-	queue = &tmp;
+	vector<Chunk> tmp(size, Chunk(1,1));
+	queue = tmp;
 	map<int, int> tmpMap;
 	indexMap = &tmpMap;
 	int i;
 	for(i =  0; i < max; ++i) {
-		cout << i << endl;
+		queue[i].key = i;
+		queue[i].val = 1;
 		(*indexMap).insert(map<int, int>::value_type(i, i));
 	}
 
-	vector<int>::iterator it = (*queue).begin();
-	for(it = (*queue).begin(); it != (*queue).end(); ++it) {
-		cout << (*it) << endl;
-	}
 }
 
 ChunkQueue::~ChunkQueue() {}
 
-vector<int>* ChunkQueue::getQueue() {
-	cout << (*queue).size() << endl;
-	cout << (*queue).size() << endl;
-	vector<int>::iterator it = (*queue).begin();
-	//for(it = (*queue).begin(); it != (*queue).end(); ++it) {
-	//	cout << (*it) << endl;
-	//}
+vector<Chunk> ChunkQueue::getQueue() {
 	return queue;
 }
 	
@@ -65,24 +56,24 @@ int rightChildIndex(int idx) {
 }
 
 void ChunkQueue::swap(int idx1, int idx2) {
-	int val1 = (*queue)[idx1];
-	int val2 = (*queue)[idx2];
+	Chunk val1 = queue[idx1];
+	Chunk val2 = queue[idx2];
 
-	(*indexMap)[val1] = idx1;
-	(*indexMap)[val2] = idx2;
+	(*indexMap)[val1.key] = idx1;
+	(*indexMap)[val2.key] = idx2;
 
-	int tmp = (*queue)[idx1];
-	(*queue)[idx1] = (*queue)[idx2];
-	(*queue)[idx2] = tmp;
+	Chunk tmp = queue[idx1];
+	queue[idx1] = queue[idx2];
+	queue[idx2] = tmp;
 }
 
 void ChunkQueue::increaseKey(int idx, int update) {
-	(*queue)[idx] == update;
+	queue[idx].val == update;
 
 	while(idx > 0) {	
 		int parentIdx = parentIndex(idx);
 
-		if((*queue)[idx] > (*queue)[parentIdx]) {
+		if(queue[idx].val > queue[parentIdx].val) {
 			swap(idx, parentIdx);
 			idx = parentIdx;
 		} else {
@@ -92,8 +83,19 @@ void ChunkQueue::increaseKey(int idx, int update) {
 	
 }
 
+void ChunkQueue::updateQueue(vector<int> chunks) {
+	cout << "Update Rarity" << endl;
+	vector<int>::iterator it = chunks.begin();
+	for(it = chunks.begin(); it != chunks.end(); ++it) {
+		int idx = (*indexMap)[(*it)];
+		int update = queue[idx].val + 1;
+		increaseKey(idx, update);
+	}
+}
+
+
 void ChunkQueue::BubbleDown(int idx) {
-	int length = (*queue).size();
+	int length = queue.size();
 	int leftChild = leftChildIndex(idx);
 	int rightChild = rightChildIndex(idx);
 
@@ -103,11 +105,11 @@ void ChunkQueue::BubbleDown(int idx) {
 
 	int maxIndex = idx;
 
-	if((*queue)[idx] < (*queue)[leftChild]) {
+	if(queue[idx].val < queue[leftChild].val) {
 		maxIndex = leftChild;
 	}
 
-	if((rightChild < length) && ((*queue)[maxIndex] < (*queue)[rightChild])) {
+	if((rightChild < length) && (queue[maxIndex].val < queue[rightChild].val)) {
 		maxIndex = rightChild;
 	}
 
@@ -120,14 +122,14 @@ void ChunkQueue::BubbleDown(int idx) {
 }
 
 void ChunkQueue::remove(int idx) {
-	int length = (*queue).size();
+	int length = queue.size();
 	
 	if(length == 0) {
 		return;
 	}
 	
-	(*queue)[idx] = (*queue)[length-1];
-	(*queue).pop_back();
+	queue[idx] = queue[length-1];
+	queue.pop_back();
 	BubbleDown(0);
 
 }
@@ -135,17 +137,26 @@ void ChunkQueue::remove(int idx) {
 
 int ChunkQueue::getChunk(set<int> pos) {
 	
-	vector<int>::iterator it = (*queue).begin();
-	for(it = (*queue).begin(); it != (*queue).end(); ++it) {
-		const bool is_in = pos.find((*it)) != pos.end();
+	vector<Chunk>::iterator it = queue.begin();
+	for(it = queue.begin(); it != queue.end(); ++it) {
+		const bool is_in = pos.find((*it).key) != pos.end();
 		if(is_in) {
 			// delete from queue and table
-			int idx = (*indexMap)[(*it)];
+			int idx = (*indexMap)[(*it).key];
 			size--;
 			remove(idx);
-			return (*it);
+			return (*it).key;
 		}
 	}
 }
 
+void ChunkQueue::Display() {
+	cout << "Chunk ordering: " << endl;
+	vector<Chunk>::iterator it = queue.begin();
+	for(it = queue.begin(); it != queue.end(); ++it) {
+		cout << (*it).key << " " << flush;
+	}
+	cout << "" << endl;
 
+
+}

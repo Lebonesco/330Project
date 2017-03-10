@@ -31,16 +31,17 @@ void updateKey(int update) {
 class ChunkQueue {
 	public:
 		int size;
-		vector<int> *queue;
+		vector<Chunk> queue;
 		map<int, int> *indexMap;
 
 	public:
 		ChunkQueue(int max);
 		~ChunkQueue();
 		int getSize();
-		vector<int>* getQueue();
+		vector<Chunk> getQueue();
 		int getChunk(set<int> values);
 		void updateQueue(vector<int> values);
+		void Display();
 	private:
 		int getIndex(int val);
 		void BubbleDown(int idx);
