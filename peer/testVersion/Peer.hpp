@@ -9,8 +9,9 @@ class Peer{
 	std::vector<int> bitfield;
 	std::vector<std::string> dataBitfield;
 	std::vector<std::string> ipPortList;
+	std::string selfIP;
 public:
-	Peer(const int numChunks, std::vector<std::string>& ipPortList, std::string type);
+	Peer(const int numChunks, std::string iP, std::vector<std::string>& ipPortList, std::string type);
 
 	//Server Specific functions
 	int createSocket(std::string peerType);								//*
@@ -20,8 +21,8 @@ public:
 
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
-	int startLeeching(std::list<std::string>& ipAndPortList);
-	std::list<std::string> updateIpPortList();
+	int startLeeching(std::vector<std::string>& ipAndPortList);
+	std::vector<std::string> updateIpPortList();
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type, std::string data = "");

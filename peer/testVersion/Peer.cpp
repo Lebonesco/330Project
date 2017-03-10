@@ -13,10 +13,14 @@
 
 using namespace std;
 
-Peer::Peer(const int numChunks, vector<string>& recvIpPortList, string type){
+/* TODO:
+		1. Figure out how to set peer IP to machine's IP
+*/
+Peer::Peer(const int numChunks, string iP, vector<string>& recvIpPortList, string type){
 	numPieces = numChunks;
 	ipPortList = recvIpPortList;
 	createBitfield(numChunks, type);
+	selfIP = iP;
 
 }
 
@@ -93,6 +97,9 @@ int Peer::acceptConnection(int seederDesc){
 
 }
 
+/* TODO:
+		1. May need to fork listen process ( ask Roscoe )	
+*/
 int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	
 	int listener;			
@@ -148,7 +155,7 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 									// send bitfield to client
 									// AS OF NOW this may as well be a place holder since bitfield
 									// currently has no functionality!
-									send(newClientSocket, bitfield, sizeof(bitfield), 0);
+									send(newClientSocket, &bitfield, bitfield.size(), 0);
 								}
 							}
 
@@ -196,7 +203,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 	if(data.find("type:BITFIELDREQ") != string::npos){
 		// .... needs to send bitfield to Leecher requesting it
-		bytesSent = send(socketDescriptor, bitfield, sizeof(bitfield), 0); 
+		bytesSent = send(socketDescriptor, &bitfield, bitfield.size(), 0); 
 	}
 	if(data.find("type:BITFIELD") != string::npos){
 		//update
@@ -252,7 +259,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 		1. Handle forking so peer can act as a seeder while leeching
 			- basic attempt implemented (untested)
 */
-int Peer::startLeeching(list<string>& ipAndPortList){
+int Peer::startLeeching(vector<string>& ipAndPortList){
 	// start leeching
 	vector<char> writeBuffer;
 	vector<int> seederList;
@@ -263,7 +270,7 @@ int Peer::startLeeching(list<string>& ipAndPortList){
 	string ip;
 	string port;
 	string myPort;		// port for listening
-	stirng myIP			// ip for listening
+	string myIP;			// ip for listening
 	char* readBuffer = new char[100];		// or whatever size we need it to be
 	vector<string>::iterator it;
 	fd_set peerFDs;
@@ -272,7 +279,7 @@ int Peer::startLeeching(list<string>& ipAndPortList){
 	// MUST FORK THIS FUNCTION
 	pid_t pid = fork();
 	if(pid == 0){
-		startSeeding(myIP, myPort);
+		startSeeding(myIP.c_str(), myPort.c_str());
 	}else if(pid > 0){
 
 		while(!fileComplete()){
@@ -318,7 +325,7 @@ int Peer::startLeeching(list<string>& ipAndPortList){
 		1. Send update request
 		2. Update peer's ipPortList
 */
-list<string> Peer::updateIpPortList(){
+vector<string> Peer::updateIpPortList(){
 	// needs to update port/ip from server
 }
 
