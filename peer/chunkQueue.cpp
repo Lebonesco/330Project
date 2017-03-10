@@ -11,12 +11,12 @@ ChunkQueue::ChunkQueue(int max) {
 	vector<Chunk> tmp(size, Chunk(1,1));
 	queue = tmp;
 	map<int, int> tmpMap;
-	indexMap = &tmpMap;
+	indexMap = tmpMap;
 	int i;
 	for(i =  0; i < max; ++i) {
 		queue[i].key = i;
 		queue[i].val = 1;
-		(*indexMap).insert(map<int, int>::value_type(i, i));
+		indexMap.insert(map<int, int>::value_type(i, i));
 	}
 
 }
@@ -28,7 +28,7 @@ vector<Chunk> ChunkQueue::getQueue() {
 }
 	
 int ChunkQueue::getIndex(int val) {
-	return (*indexMap)[val];
+	return indexMap[val];
 } 
 
 int ChunkQueue::getSize() {
@@ -59,8 +59,10 @@ void ChunkQueue::swap(int idx1, int idx2) {
 	Chunk val1 = queue[idx1];
 	Chunk val2 = queue[idx2];
 
-	(*indexMap)[val1.key] = idx1;
-	(*indexMap)[val2.key] = idx2;
+	indexMap[val1.key] = idx2;
+	indexMap[val2.key] = idx1;
+	cout << "key: " << val1.key << " is now at index " << idx2 << endl;
+ 	cout << "key: " << val2.key << " is now at index " << idx1 << endl;
 
 	Chunk tmp = queue[idx1];
 	queue[idx1] = queue[idx2];
@@ -68,11 +70,11 @@ void ChunkQueue::swap(int idx1, int idx2) {
 }
 
 void ChunkQueue::increaseKey(int idx, int update) {
-	queue[idx].val == update;
-
+	queue[idx].val += update;
+	cout << "Increasing key of: " << idx << " to " << update << endl;
+	cout << queue[idx].val << endl;
 	while(idx > 0) {	
 		int parentIdx = parentIndex(idx);
-
 		if(queue[idx].val > queue[parentIdx].val) {
 			swap(idx, parentIdx);
 			idx = parentIdx;
@@ -87,8 +89,10 @@ void ChunkQueue::updateQueue(vector<int> chunks) {
 	cout << "Update Rarity" << endl;
 	vector<int>::iterator it = chunks.begin();
 	for(it = chunks.begin(); it != chunks.end(); ++it) {
-		int idx = (*indexMap)[(*it)];
-		int update = queue[idx].val + 1;
+		cout << "Getting index of: " << (*it) << endl;
+		int idx = indexMap[(*it)];
+		int update = 1;
+		cout << "Updating: " << (*it) << endl;
 		increaseKey(idx, update);
 	}
 }
@@ -142,7 +146,7 @@ int ChunkQueue::getChunk(set<int> pos) {
 		const bool is_in = pos.find((*it).key) != pos.end();
 		if(is_in) {
 			// delete from queue and table
-			int idx = (*indexMap)[(*it).key];
+			int idx = indexMap[(*it).key];
 			size--;
 			remove(idx);
 			return (*it).key;

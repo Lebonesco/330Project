@@ -32,7 +32,7 @@ class ChunkQueue {
 	public:
 		int size;
 		vector<Chunk> queue;
-		map<int, int> *indexMap;
+		map<int, int> indexMap;
 
 	public:
 		ChunkQueue(int max);
@@ -42,10 +42,11 @@ class ChunkQueue {
 		int getChunk(set<int> values);
 		void updateQueue(vector<int> values);
 		void Display();
+		void remove(int idx);
 	private:
 		int getIndex(int val);
 		void BubbleDown(int idx);
-		void remove(int idx);
+		//void remove(int idx);
 		void swap(int idx1, int idx2);
 		void increaseKey(int idx, int update);
 };
