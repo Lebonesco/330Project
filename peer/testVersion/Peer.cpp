@@ -10,7 +10,7 @@
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
 #include "Peer.hpp"
-#include "metafile.hpp"
+//#include "metafile.hpp"
 
 using namespace std;
 
@@ -213,11 +213,11 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 	if(data.find("type:BITFIELDREQ") != string::npos){
 		// .... needs to send bitfield to Leecher requesting it
-		string bitfieldMsgToSend = "type:BITFIELD"
+		string bitfieldMsgToSend = "type:BITFIELD";
 		stringstream ss;
 		string bfString;
 
-		for(size_t i = 0; i < bitfield.size(), ++i){
+		for(size_t i = 0; i < bitfield.size(); ++i){
 			ss << bitfield[i];
 		}
 		bfString = ss.str();
@@ -228,7 +228,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 	if(data.find("type:BITFIELD") != string::npos){
 		// mark indices where data is available
-		vector<int> recBitfield (numChunks, 0);
+		vector<int> recBitfield (numPieces, 0);
 		//populate recBitfield****
 		string pieceReqMsgToSend = "type:PIECE|";		//will append index
 		//queue.updateQueue(recv, bitfield)
@@ -242,11 +242,11 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 	}
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
-		string sIndex = data.at(data.find("index:"));
+		char sIndex = data.at(data.find("index:"));
 		int index = stoi(sIndex);
 
 		string dataToWrite = data.substr(data.find("type:PIECE"));
-		dataBitfield[i] = dataToWrite;
+		dataBitfield[index] = &dataToWrite;
 	}
 	if(data.find("type:UPDATE") != string::npos){
 
@@ -402,11 +402,12 @@ void Peer::createBitfield(int numChunks, string type, string data){
 
 	}
 }
-
+/*
 void Peer::setFileData(string filename){
 	Metafile *file = new metafile::Metafile(filename);
 	dataBitfield = (*file).getBitfield();
 }
+*/
 
 string Peer::createBitfieldReqMsg(){
 	return "type:BITFIELDREQ";
