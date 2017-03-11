@@ -83,7 +83,14 @@ void ChunkQueue::increaseKey(int idx, int update) {
 	
 }
 
-void ChunkQueue::updateQueue(vector<int> chunks) {
+void ChunkQueue::updateQueue(vector<int> peer, vector<int> neighbor) {
+	vector<int> chunks;
+	int i;
+	for(i = 0; i < peer.size(); ++i) {
+		if(peer[i] == 0 && neighbor[i] == 0) {
+			chunks.push_back(i);
+		}
+	}
 	cout << "Update Rarity" << endl;
 	vector<int>::iterator it = chunks.begin();
 	for(it = chunks.begin(); it != chunks.end(); ++it) {
