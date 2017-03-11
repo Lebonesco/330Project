@@ -38,6 +38,8 @@ string encode(map<T, K> x) {
 	return r;
 }
 
+void decode(string data, vector<
+
 template <typename T>
 string encode(vector<T> x) {
 	string r;

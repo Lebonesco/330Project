@@ -1,5 +1,5 @@
-SOURCES = metafile.cpp main.cpp bencode.c
-HEADERS = metafile.hpp bencode.h list.h
+SOURCES = metafile.cpp main.cpp 
+HEADERS = metafile.hpp
 OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES:.c=.o)
 LIBS = -lm
 
@@ -8,7 +8,7 @@ CXX = g++
 CCFLAGS = -std=c99 -g
 CXXFLAGS = -Wall -Werror -std=c++11 -g
 
-input = metafile.o main.o bencode.o
+input = metafile.o main.o 
 
 metafile: $(input) 
 	$(CXX) $(CXXFLAGS) $(input) -o $@ 
@@ -19,9 +19,5 @@ metafile.o: metafile.cpp metafile.hpp
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) main.cpp metafile.cpp
 
-bencode.o: bencode.c bencode.h list.h
-	$(CC) -c $(CCFLAGS) bencode.c
-
-
 clean:
-	$(RM) metafile metafile.o main.o bencode.o                                         
+	$(RM) metafile metafile.o main.o                                      

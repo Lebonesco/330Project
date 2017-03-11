@@ -11,19 +11,19 @@ class Metafile {
 public:
 	Metafile(string file);
 	~Metafile();
-	void getMetafile();
 	void displayMetafile();
-	void getFileSize(string file);
-	void bencode();
+	int getChunkNumber(string file); // this needs to get called to return chunk number
 	void generateChunks();
 	void combineChunks(int nParts);
+	vector<char*> getBitfield(); // returns bitfield array filled with data
 public:
 	int numberOfPreferedNeighbors = 2;
 	int unchokingInterval = 5;
 	int optimisticUnchoking = 15;
 	int fileSize;
 	int pieceSize;
-	vector<char*> *bitfield;
+	int chunkNumber;
+	vector<char*> bitfield;
 	string fileName;
 	string announce;
 };

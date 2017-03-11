@@ -6,29 +6,26 @@
 #include "metafile.hpp"
 #include <cstring>
 
-extern "C" {
-#include "bencode.h"
-}
-
 using namespace std;
 using namespace metafile;
 //ifstream::ate - set the initial position at the end of the file
 //ifteram::bianry - open in binary mode
 Metafile::Metafile(string filename){
-	getFileSize(filename);
 	fileName = filename;
+	getChunkNumber();
 	generateChunks();
-	bencode();
 }
 
-void Metafile::getFileSize(string filename) {
+int Metafile::getChunkNumber() {
 	ifstream mySource;
-	mySource.open(filename, ios_base::binary);
+	mySource.open(fileName, ios_base::binary);
 	mySource.seekg(0, ios_base::end);
 	int size = mySource.tellg();
 	mySource.close();
 	fileSize = size;
 	pieceSize = size / 10;
+	chunkNumber = 10;
+	return chunkNumber;
 }
 
 void Metafile::displayMetafile() {
@@ -41,8 +38,8 @@ void Metafile::displayMetafile() {
 	cout << "\nfile name: " << fileName << endl;
 }
 
-void Metafile::bencode() {
-	
+vector<char*> Metafile::getBitfield() {
+	return bitfield;
 }
 
 void Metafile::generateChunks() {
@@ -61,8 +58,8 @@ void Metafile::generateChunks() {
 	string sDestinationFile;
 	string str = "none";
 	char *none = &str[0u];
-	vector<char*> tmp((nSize / nChunkSize) + 1, none);
-	bitfield = &tmp;
+	vector<char*> tmp((nSize / nChunkSize), none);
+	bitfield = tmp;
 
 	if(fSource.is_open()) { // check if file is open
 		fSource.seekg(0, ios::beg); // get beginning of file
@@ -80,7 +77,7 @@ void Metafile::generateChunks() {
 
 			sMemBlock = new char[nChunkSize]; // assign memory
 			fSource.read(sMemBlock, nChunkSize); // read file data into memory
-			(*bitfield)[nPartNumber-1] = sMemBlock;
+			bitfield[nPartNumber-1] = sMemBlock;
 		}
 		
 		sDestinationFile = fileName;
@@ -99,10 +96,10 @@ void Metafile::generateChunks() {
 		}
 
 		cout << "map data: " << endl;
-		vector<char*>::iterator it = (*bitfield).begin();
+		vector<char*>::iterator it = bitfield.begin();
 
-		for(it = (*bitfield).begin(); it != (*bitfield).end(); ++it) {
-			cout << (*it) << endl;			
+		for(it = bitfield.begin(); it != bitfield.end(); ++it) {
+			//cout << (*it) << endl;			
 		}
 		
 	combineChunks(nPartNumber-1);

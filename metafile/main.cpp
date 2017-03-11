@@ -9,5 +9,9 @@ int main(int argc, char * argv[]) {
 	cout << "Please type in file path: " << endl;
 	cin >> filename;
 	Metafile *file = new metafile::Metafile(filename);
-	(*file).displayMetafile();
+	cout << "chunk number is: " << (*file).getChunkNumber() << endl;
+	cout << "BitField" << endl;
+	vector<char*> bitfield = (*file).getBitfield();
+
+
 }
