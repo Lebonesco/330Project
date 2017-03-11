@@ -1,7 +1,6 @@
 //Client interface to be able to connect to server/other peers
 //Created by: Anisha Aggarwal
 
-
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -21,7 +20,7 @@
 #include "client.hpp"
 using namespace std;
 
-#define PORT 8500
+#define PORT 9532
 #define MAXDATASIZE 100
 
 //figure out what the user wants to do
