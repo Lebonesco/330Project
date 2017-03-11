@@ -67,7 +67,7 @@ void updateFileList(File f, int uploads, File* array){
 File initializeFile(char filename, int chunks_num, int port_num){
     File file;
     
-    strcpy(file.file_name, filename);
+    strcpy(file.file_name, &filename);
     file.chunks = chunks_num;
     file.port = port_num;
     
@@ -216,10 +216,13 @@ int main(void)
             else if (strncmp(buffer,"upload",6)==0){
                 // Request for size of files
                 printf("Requested upload\n");
-                upload_count++;
-                send(new_fd, "Waiting for size", 16, 0);
-                recv(new_fd, file_name,15,0);
+                uploader_count++;
+                if (recv(new_fd, file_name,15,0) < 0){
+                    printf("Error receiving from client\n");
+                }
                 printf("File name received: %s\n", file_name);
+                
+                
             }
             else {
                 // Client sent an invalid message
