@@ -19,9 +19,11 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#define PORT "8500"  // the port users will be connecting to
+#include "tracker.h"
 
-#define BACKLOG 10     // how many pending connections queue will hold
+#define PORT "9532"  // the port users will be connecting to
+
+#define BACKLOG 100     // how many pending connections queue will hold
 
 void sigchld_handler(int s)
 {
@@ -44,6 +46,47 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+void updatePeerList(char **array, int count , const char *s){
+    // Reallocate array for new addresses that connected
+    array = realloc(array, count * sizeof(*array));
+
+    // Add address that just connected to the list
+    array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
+    strcpy(array[count-1], s);
+}
+
+// FIX to update a list of structs
+void updateFileList(File f, int uploads, File* array){
+    // Reallocate array for new addresses that connected
+    array = realloc(array, uploads * sizeof(*array));
+    
+   
+}
+
+// Fill in the file struct with correct values
+File initializeFile(char filename, int chunks_num, int port_num){
+    File file;
+    
+    strcpy(file.file_name, filename);
+    file.chunks = chunks_num;
+    file.port = port_num;
+    
+    return file;
+}
+
+// Free memory used in total peer array
+void freePeerArray(char** array, int index){
+    for (int i = 0; i < index; i++){
+        char* ptr = array[i];
+        free(ptr);
+    }
+}
+
+// Free memory used for file array
+void freeFileArray(File* array){
+    free(array);
+}
+
 int main(void)
 {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
@@ -55,7 +98,7 @@ int main(void)
     char s[INET6_ADDRSTRLEN];
     int rv,n;
     char buffer[16];
-    int pid;
+    char file_name[15];
     
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -117,6 +160,14 @@ int main(void)
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
         data_array[i] = malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
+    
+    // Array for storing file properties
+    File* file_array = malloc(1 * sizeof(*file_array));
+    
+    // Number of clients who want to upload something
+    int uploader_count = 0;
+    
+    // Number of clients who have connected
     int count = 0;
     
     
@@ -134,14 +185,10 @@ int main(void)
         printf("server: got connection from %s\n", s);
         count++;
         
-        
         printf("Number of peers: %d\n", count);
-        // Reallocate array for new addresses that connected
-        data_array = realloc(data_array, count * sizeof(*data_array));
         
-        // Add address that just connected to the list
-        data_array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
-        strcpy(data_array[count-1], s);
+        // Update peer list with new client that just connected
+        updatePeerList(data_array,count,s);
         
         // Print out contents in list
         puts("Contents in list:");
@@ -153,11 +200,6 @@ int main(void)
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
-            // Deallocate memory for array
-            for (int i = 0; i < count; i++){
-                char* ptr = data_array[i];
-                free(ptr);
-            }
             
             bzero(buffer,16);
             // Receive message from client to see which repsone to send
@@ -174,7 +216,10 @@ int main(void)
             else if (strncmp(buffer,"upload",6)==0){
                 // Request for size of files
                 printf("Requested upload\n");
+                upload_count++;
                 send(new_fd, "Waiting for size", 16, 0);
+                recv(new_fd, file_name,15,0);
+                printf("File name received: %s\n", file_name);
             }
             else {
                 // Client sent an invalid message
@@ -188,6 +233,9 @@ int main(void)
         }
         close(new_fd);  // parent doesn't need this
     }
+    
+    freeFileArray(file_array);
+    freePeerArray(data_array,count);
     
     return 0;
 }
