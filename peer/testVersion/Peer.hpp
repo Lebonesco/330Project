@@ -11,8 +11,9 @@ public:
 	std::vector<std::string> dataBitfield;
 	std::vector<std::string> ipPortList;
 	const char* selfIP;
+	const char* selfPort;
 //public:
-	Peer(const int numChunks, std::string iP, std::vector<std::string>& ipPortList, std::string type);
+	Peer(const int numChunks, std::string iP, std::string port, std::vector<std::string>& ipPortList, std::string type);
 
 	//Server Specific functions
 	int createSocket(std::string peerType);								//*
@@ -35,6 +36,7 @@ public:
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
+	std::string createBitfieldReqMsg();
 
 };
 
