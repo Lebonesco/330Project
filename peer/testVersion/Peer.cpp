@@ -10,6 +10,7 @@
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
 #include "Peer.hpp"
+#include "metafile.hpp"
 
 using namespace std;
 
@@ -228,6 +229,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 	if(data.find("type:BITFIELD") != string::npos){
 		// mark indices where data is available
 		vector<int> recBitfield (numChunks, 0);
+		//populate recBitfield****
 		string pieceReqMsgToSend = "type:PIECE|";		//will append index
 		//queue.updateQueue(recv, bitfield)
 		//set of all available
@@ -334,6 +336,7 @@ int Peer::startLeeching(vector<string>& ipAndPortList){
 						send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
 						recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
 						while(recievedBytes > 0){
+							// decode message before passing to readRecvMSG
 							memset(readBuffer, 0, 100);			//initialize buffer to 0's
 							recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
 							writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
@@ -369,22 +372,6 @@ vector<string> Peer::updateIpPortList(){
 // Update list of which peers still have interesting data, remove those that don't
 void Peer::getPeerData(vector<int> seederList){
 
-	/*
-	while(1){
-		int x = 0;
-		int numFilePieces = 5; 					// placeholder
-		for(int j = 0; j < numFilePieces; j++){		// bitfield.length might be syntax error but for now its a placeholder
-			if(fileBitfield[bitfield[j]] != 1){			// if peer does not have current piece j
-				x = x % seederList.size();
-				cout << "Getting piece" << bitfield[j] << endl;
-				// send peice request
-
-			}
-		}else{
-
-		}
-	}
-	*/
 }
 
 bool Peer::fileComplete(){
@@ -416,12 +403,17 @@ void Peer::createBitfield(int numChunks, string type, string data){
 	}
 }
 
-string createBitfieldReqMsg(){
+void Peer::setFileData(string filename){
+	Metafile *file = new metafile::Metafile(filename);
+	dataBitfield = (*file).getBitfield();
+}
+
+string Peer::createBitfieldReqMsg(){
 	return "type:BITFIELDREQ";
 }
 
-string createPieceRequest(int index){
-	
+string Peer::createPieceRequest(int index){
+
 }
 
 int main(){

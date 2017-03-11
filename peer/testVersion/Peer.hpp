@@ -8,7 +8,7 @@ class Peer{
 public:
 	int numPieces;
 	std::vector<int> bitfield;
-	std::vector<std::string> dataBitfield;
+	std::vector<char*> dataBitfield;
 	std::vector<std::string> ipPortList;
 	const char* selfIP;
 	const char* selfPort;
@@ -28,15 +28,12 @@ public:
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type, std::string data = "");
-
-	//Hash functions
-	std::string createHash(std::string text);
-	int checkPieceHash(std::string pieceData, int pieceNum); //check w/server based on piece number
-	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
+	void setFileData(std::string filename);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
 	std::string createBitfieldReqMsg();
+	std::string createPieceRequest(int index);
 
 };
 
