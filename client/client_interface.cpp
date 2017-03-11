@@ -1,4 +1,6 @@
 //Client interface to be able to connect to server/other peers
+//Created by: Anisha Aggarwal
+
 
 #include <iostream>
 #include <cstring>
@@ -54,6 +56,7 @@ bool Client::connection(int argc, char *argv[]) {
 	if(inet_addr(server.c_str()) != -1) {
 		//specified address is in IP format
 		sock_addr.sin_addr.s_addr = inet_addr(server.c_str());
+		cout << "specified address in IP format" << endl;
 	} else {
 		//specified address is a host name
 		//resolve it to an IP address
@@ -64,7 +67,7 @@ bool Client::connection(int argc, char *argv[]) {
 			cout << "gethostbyname failed" << endl;
 			return false;
 		}
-		
+		cout << "gethostname is " << server.c_str() << endl;
 		addr_list = (struct in_addr **) h->h_addr_list;
 		for (int i = 0; addr_list[i]; i++) {
 			sock_addr.sin_addr = *addr_list[i];
@@ -85,15 +88,28 @@ bool Client::connection(int argc, char *argv[]) {
 }
 
 //send data to server
-bool Client::send_data(std::string data) {
+bool Client::sendStringData(std::string data) {
 	if (send(sock, data.c_str(), strlen(data.c_str()), 0) < 0) {
 		cout << "Send has failed" << endl;
 		return false;
 	}
-	cout << "Data sent" << endl;
+	cout << data << " sent" << endl;
 
 	return true;
 }
+
+/*
+//send int data to server
+bool Client::sendIntData(int data) {
+        if (send(sock, data, 100, 0) < 0) {
+                cout << "Send has failed" << endl;
+                return false;
+        }
+        cout << data << " sent" << endl;
+
+        return true;
+}
+*/
 
 //receive data from server
 std::string Client::receive(int size) {
@@ -134,29 +150,28 @@ std::string Client::getUploadPath() {
 	return path;
 }
 
-long Client::getFileSize(std::string path) {
+bool Client::checkFileValidity(std::string path) {
 
 	FILE *upload_file;
-	unsigned long file_size;
+	//unsigned long file_size;
+	bool valid = false;
 
 	upload_file =  fopen(path.c_str(), "r");
 	
 	if (upload_file == NULL) {
+		valid = false;
 		cout << "File not found" << endl;
 	} else {
+		valid = true;
 		cout << "File " << upload_file << " found" << endl;
-		
-		fseek(upload_file, 0, SEEK_END);
-		file_size = ftell(upload_file);
-		cout << "File has " << file_size << " bytes." << endl;
-		rewind(upload_file);
 	}
-	
-	//send server message stating the file size
-	
-	
+
+	if (valid == true) {
+		//send server message with file name, and file size
+		//send();	
+	}
 	fclose(upload_file);
-	return file_size;
+	return valid;
 }
 
 
@@ -193,26 +208,32 @@ int main(int argc, char *argv[]) {
 	int size = 512;
 	std::string message;
 	std::string path;
-	c.connection(argc, argv);
+	bool connected = false;	
+
+	connected = c.connection(argc, argv);
+	if (connected == false) {
+		return -1;
+	}		
 
 	char upORdown = 'a';
 	getUserData(upORdown);
 	if (upORdown == 'u') {
 		//send server message that user wants to upload
 		message = "upload";
-		c.send_data(message);
+		c.sendStringData(message);
 
-		//read in the path to the file the user would like to upload
-		c.getUploadPath();
+		//read in the path to the file the user would like to upload		
+		path = c.getUploadPath();
+		c.sendStringData(path);
 
 		//get message back from server
-		message = c.receive(size);
+		//message = c.receive(size);
 
-		c.sendUploadInfo(path);
+		//c.sendUploadInfo(path);
 	} else {
 		//send client message that user wants to download
 		message = "download";
-		c.send_data(message);
+		c.sendStringData(message);
 
 		//display the options of files to be downloaded
 		//get user input on which file they would like to download

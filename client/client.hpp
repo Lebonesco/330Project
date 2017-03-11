@@ -1,4 +1,5 @@
 //Client header file
+//Created By: Anisha Aggarwal
 
 #ifndef CLIENT_HPP_
 #define CLIENT_HPP_
@@ -14,11 +15,12 @@ class Client {
 public:
 	Client();
 	bool connection(int argc, char *argv[]);
-	bool send_data(std::string data);
+	bool sendStringData(std::string data);
+	bool sendIntData(int data);
 	std::string receive(int size); 
 	std::string getUploadPath();
 	int chooseDownloadFile();
-	long getFileSize(std::string path);
+	bool checkFileValidity(std::string path);
 	void sendUploadInfo(std::string path);
 	void close_connection();	
 private:
