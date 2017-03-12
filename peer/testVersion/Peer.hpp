@@ -8,7 +8,7 @@ class Peer{
 public:
 	int numPieces;
 	std::vector<int> bitfield;
-	std::vector<char*> dataBitfield;
+	std::vector<const char*> dataBitfield;
 	std::vector<std::string> ipPortList;
 	const char* selfIP;
 	const char* selfPort;

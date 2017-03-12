@@ -243,10 +243,10 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
 		char sIndex = data.at(data.find("index:"));
-		int index = stoi(sIndex);
+		int index = (int)sIndex;
 
 		string dataToWrite = data.substr(data.find("type:PIECE"));
-		dataBitfield[index] = &dataToWrite;
+		dataBitfield[index] = dataToWrite.c_str();
 	}
 	if(data.find("type:UPDATE") != string::npos){
 
@@ -304,7 +304,7 @@ int Peer::startLeeching(vector<string>& ipAndPortList){
 	string port;
 	string myPort;		// port for listening
 	string myIP;			// ip for listening
-	char* readBuffer = new char[100];		// or whatever size we need it to be
+	char readBuffer[100];		// or whatever size we need it to be
 	vector<string>::iterator it;
 	fd_set peerFDs;
 	FD_ZERO(&peerFDs);
@@ -312,39 +312,44 @@ int Peer::startLeeching(vector<string>& ipAndPortList){
 	//
 
 	// MUST FORK THIS FUNCTION
+/*
 	pid_t pid = fork();
 	if(pid == 0){
 		startSeeding(myIP.c_str(), myPort.c_str());
 	}else if(pid > 0){
-
+*/
 		while(!fileComplete()){
 			//check for new Seeders
 			ipAndPortList = updateIpPortList();
 
 			for(it = ipAndPortList.begin(); it != ipAndPortList.end(); ++it){
-				//***FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
+				//FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
 				
 				ip = it->substr(0, it->find(':'));		// get ip		
 				port = it->substr(it->find(':') + 1, it->length());		// get port
-
-				seederSocketFD = connectToClient(ip.c_str(), port.c_str());			//connect to seeder: port and ip need to be c strings
-				if(!FD_ISSET(seederSocketFD, &peerFDs)){
-					FD_SET(seederSocketFD, &peerFDs);
-					if(seederSocketFD != -1){
-						seederList.push_back(seederSocketFD);			//add seeder to list of seeders
-						string bFReqMsg = createBitfieldReqMsg();
-						send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
-						recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
-						while(recievedBytes > 0){
-							// decode message before passing to readRecvMSG
-							memset(readBuffer, 0, 100);			//initialize buffer to 0's
-							recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
-							writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+				
+				if(port == selfPort){
+					continue;
+				}else{
+					seederSocketFD = connectToClient(ip.c_str(), port.c_str());			//connect to seeder: port and ip need to be c strings
+					if(!FD_ISSET(seederSocketFD, &peerFDs)){
+						FD_SET(seederSocketFD, &peerFDs);
+						if(seederSocketFD != -1){
+							seederList.push_back(seederSocketFD);			//add seeder to list of seeders
+							string bFReqMsg = createBitfieldReqMsg();
+							send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
+							recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
+							while(recievedBytes > 0){
+								// decode message before passing to readRecvMSG
+							//	memset(readBuffer, 0, 100);			//initialize buffer to 0's
+								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
+								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+							}
+							string data = string(writeBuffer.begin(), writeBuffer.end());
+	
+							//should be new client bitfield every time
+							readRecvMSG(data, seederSocketFD);
 						}
-						string data = string(writeBuffer.begin(), writeBuffer.end());
-
-						//should be new client bitfield every time
-						readRecvMSG(data, seederSocketFD);
 					}
 				}
 			}
@@ -355,10 +360,11 @@ int Peer::startLeeching(vector<string>& ipAndPortList){
 			}
 		}
 		//SEND FILE COMPLETE MESSAGE
-
+/*
 	}else{
 		cout << "Fork failed." << endl;
 	}
+*/
 }
 
 /* TODO:
@@ -367,6 +373,7 @@ int Peer::startLeeching(vector<string>& ipAndPortList){
 */
 vector<string> Peer::updateIpPortList(){
 	// needs to update port/ip from server
+	return ipPortList;
 }
 
 // Update list of which peers still have interesting data, remove those that don't
@@ -428,6 +435,7 @@ int main(){
 	Peer* seeder = new Peer(chunks, testIP, testPort, testList, "Leech");
 
 	cout << seeder->selfIP << endl;
+	cout << seeder->ipPortList[0];
 	//seeder->startSeeding(seeder->selfIP, cTestPort);
 	seeder->startLeeching(seeder->ipPortList);
 
