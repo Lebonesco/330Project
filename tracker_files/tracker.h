@@ -25,4 +25,8 @@ void freeFileArray(File* array);
 
 void freePeerArray(char** array, int index);
 
+char* encode_int(char* x);
+
+char* encode_str(char* x);
+
 #endif /* tracker_h */
