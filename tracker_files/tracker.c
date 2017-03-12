@@ -46,6 +46,7 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+// Add client to total peer list
 void updatePeerList(char **array, int count , const char *s){
     // Reallocate array for new addresses that connected
     array = realloc(array, count * sizeof(*array));
@@ -55,12 +56,13 @@ void updatePeerList(char **array, int count , const char *s){
     strcpy(array[count-1], s);
 }
 
-// FIX to update a list of structs
+// Update a list of structs
 void updateFileList(File f, int uploads, File* array){
     // Reallocate array for new addresses that connected
     array = realloc(array, uploads * sizeof(*array));
     
-   
+    // Add new file to list
+    array[uploads-1] = f;
 }
 
 // Fill in the file struct with correct values
@@ -69,7 +71,7 @@ File initializeFile(char filename, int chunks_num, int port_num){
     
     strcpy(file.file_name, &filename);
     file.chunks = chunks_num;
-    file.port = port_num;
+    strcpy(file.port, port_num);
     
     return file;
 }
@@ -258,7 +260,6 @@ int main(void)
                 }
                 
                 printf("File name received: %s\n", file_name);
-                
                 
             }
             else {
