@@ -17,6 +17,10 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <vector>
+#include <cstdlib>
+#include <typeinfo>
+#include <map>
 #include "client.hpp"
 using namespace std;
 
@@ -118,6 +122,7 @@ std::string Client::receive(int size) {
 	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
 		cout << "Receive has failed" << endl;
 	}
+
 	s_reply = buffer;
 	return s_reply;
 }
@@ -149,6 +154,7 @@ std::string Client::getUploadPath() {
 	return path;
 }
 
+/*
 bool Client::checkFileValidity(std::string path) {
 
 	FILE *upload_file;
@@ -172,7 +178,7 @@ bool Client::checkFileValidity(std::string path) {
 	fclose(upload_file);
 	return valid;
 }
-
+*/
 
 void Client::sendUploadInfo(std::string path){
 
@@ -196,18 +202,44 @@ int Client::chooseDownloadFile() {
 	return fileNum;
 }
 
+//encode integer
+string encode(int x) {
+	string r;
+	r.append("i");
+	r.append(to_string(x));
+	r.append("e");
+	return r;
+}
+
+//encode string
+string encode(string x) {
+	string r;
+	int length = x.length();
+	r.append(to_string(length));
+	r.append(":");
+	r.append(x);
+	return r;
+}
+
+
 //close connection to server
 void Client::close_connection() {
 	close(sock);
 }
 
+/*
 int main(int argc, char *argv[]) {
 
 	Client c;
+	//Metafile m;
+	//Peer p;
 	int size = 512;
 	std::string message;
 	std::string path;
+	std::string port;
 	bool connected = false;	
+	std::string peer_info;
+	std::string bencoded_info;
 
 	connected = c.connection(argc, argv);
 	if (connected == false) {
@@ -223,12 +255,18 @@ int main(int argc, char *argv[]) {
 
 		//read in the path to the file the user would like to upload		
 		path = c.getUploadPath();
-		c.sendStringData(path);
 
-		//get message back from server
-		//message = c.receive(size);
+		//encode port number
+		port = encode(4);
+		cout << c.sendStringData(port) << endl;
+		//port = encode(p.port);
+		//c.sendStringData(port);
 
-		//c.sendUploadInfo(path);
+		//encode the path
+		message = encode(path);
+		c.sendStringData(message);
+	
+
 	} else {
 		//send client message that user wants to download
 		message = "download";
@@ -236,15 +274,17 @@ int main(int argc, char *argv[]) {
 
 		//display the options of files to be downloaded
 		//get user input on which file they would like to download
-		c.chooseDownloadFile();
-
+		//c.chooseDownloadFile();
+		bencoded_info = c.receive(size);
+		//peer_info = decode(bencoded_info);
+		cout << bencoded_info << endl;
 
 		//connect to server and start downloading file?
 		//peer class?
 		
 		//server sends message of number of packages to be sent
 		//recieve listing from server of downloadable files
-//		c.receive(size);
+		//cout << c.receive(size) << endl;
 		
 	}
 
@@ -252,5 +292,5 @@ int main(int argc, char *argv[]) {
 
 	return 0;	
 }
-
+*/
 

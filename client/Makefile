@@ -1,4 +1,4 @@
-SOURCES = client_interface.cpp
+SOURCES = client_interface.cpp main.cpp
 HEADERS = client.hpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
