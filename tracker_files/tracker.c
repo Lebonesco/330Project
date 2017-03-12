@@ -87,6 +87,7 @@ void freeFileArray(File* array){
     free(array);
 }
 
+// Deallocate memory for one dimensional array
 void deallocateArray(char* array){
     free(array);
 }
@@ -94,7 +95,6 @@ void deallocateArray(char* array){
 // Encode integer
 char* encode_int(char* x){
     char* val = malloc(6*sizeof(*val));
-    printf("number to be encoded: %s\n", x);
     val[0] = 'i';
     for (int i = 1; i <= 4;i++){
         val[i] = x[i-1];
@@ -108,7 +108,6 @@ char* encode_int(char* x){
 char* encode_str(char* x){
     char* val = malloc (100 * sizeof(*val));
     int length = strlen(x);
-    printf("length of string: %d\n",length);
     int first = length /10;
     int second = length % 10;
     
@@ -223,12 +222,6 @@ int main(void)
         count++;
         
         printf("Number of peers: %d\n", count);
-        
-        
-        // TESTING ENCODING
-        char* test = encode_str("This/is/a/test");
-        printf("Encoding string: %s\n", test);
-        deallocateArray(test);
         
         // Update peer list with new client that just connected
         updatePeerList(data_array,count,s);
