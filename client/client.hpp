@@ -1,4 +1,5 @@
 //Client header file
+//Created By: Anisha Aggarwal
 
 #ifndef CLIENT_HPP_
 #define CLIENT_HPP_
@@ -14,33 +15,19 @@ class Client {
 public:
 	Client();
 	bool connection(int argc, char *argv[]);
-	bool send_data(std::string data);
+	bool sendStringData(std::string data);
+	bool sendIntData(int data);
 	std::string receive(int size); 
+	std::string getUploadPath();
+	int chooseDownloadFile();
+	bool checkFileValidity(std::string path);
+	void sendUploadInfo(std::string path);
 	void close_connection();	
 private:
 	int sock;			//holds socket
 	std::string server;		//address of server
 	int port;			//predefined port number of server
 	struct sockaddr_in sock_addr;	//socket address	
-
-
-/*
-	public:
-		String path;
-		int sockfd;
-		int numBytes;
-		char buf[100];
-		struct addrinfo hints, *servinfo, *p;
-		int rv;
-		char s[INET6_ADDRSTRLEN];
-		
-		Client();
-
-		void get_in_addr(struct sockaddr *sa);
-		int connection(int argc, char *argv[]);
-		void close_connection();		
-	private:
-*/
 
 };
 
