@@ -67,7 +67,7 @@ void updatePortList(char **array, int count , const char *s){
 }
 
 // Add file name to file name list
-void updatePortList(char **array, int count , const char *s){
+void updateNameList(char **array, int count , const char *s){
     // Reallocate array for new file name
     array = realloc(array, count * sizeof(*array));
     
@@ -235,7 +235,7 @@ int main(void)
         printf("Number of peers: %d\n", count);
         
         // Update peer list with new client that just connected
-        updatePeerList(data_array,count,s);
+        updateTotalList(data_array,count,s);
         
         // Print out contents in list
         puts("Contents in total list:");
@@ -278,7 +278,7 @@ int main(void)
                 filename_count++;
                 uploader_count++;
             
-                if (recv(new_fd, port_num,4,0) < 0){
+                if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 if (recv(new_fd, file_name,15,0) < 0){
@@ -286,18 +286,18 @@ int main(void)
                 }
                 
                 updateNameList(name_array,filename_count,file_name);
-                updatePortList(port_array,uploader_count,port_num);
+                updatePortList(port_array,uploader_count,port_number);
                 printf("File name received: %s\n", file_name);
-                printf("Port number received: %s\n", port_num);
+                printf("Port number received: %s\n", port_number);
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
-                if (recv(new_fd, port_num,4,0) < 0){
+                if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 filename_count++;
-                updatePortList(port_array,uploader_count,port_num);
+                updatePortList(port_array,uploader_count,port_number);
                 //Send back update list
             }
             else {
