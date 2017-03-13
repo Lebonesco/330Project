@@ -11,19 +11,16 @@
 
 typedef struct {
     char file_name[100];
-    int chunks;
-    int port;
+    char port[4];
 }File;
 
-void updatePeerList(char **array, int count, const char *s);
+void updateTotalList(char **array, int count, const char *s);
 
-void updateFileList(File f, int uploads, File* array);
+void updatePortList(char **array, int count, const char *s);
 
-File initializeFile(char filename, int chunks_num, int port_num);
+void updateNameList(char **array, int count, const char *s);
 
-void freeFileArray(File* array);
-
-void freePeerArray(char** array, int index);
+void freeArray(char** array, int index);
 
 char* encode_int(char* x);
 
