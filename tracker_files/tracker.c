@@ -83,6 +83,7 @@ void freeArray(char** array, int index){
         char* ptr = array[i];
         free(ptr);
     }
+    free(array);
 }
 
 // Deallocate memory for one dimensional array
@@ -281,14 +282,15 @@ int main(void)
                 if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                if (recv(new_fd, file_name,15,0) < 0){
+                if (recv(new_fd, file_name,20,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
-                updateNameList(name_array,filename_count,file_name);
+                // Add contents received to their repsective lists
                 updatePortList(port_array,uploader_count,port_number);
-                printf("File name received: %s\n", file_name);
+                updateNameList(name_array,filename_count,file_name);
                 printf("Port number received: %s\n", port_number);
+                printf("File name received: %s\n", file_name);
                 
             }
             
@@ -296,9 +298,9 @@ int main(void)
                 if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                filename_count++;
+                uploader_count++;
                 updatePortList(port_array,uploader_count,port_number);
-                //Send back update list
+                //Send back updated list
             }
             else {
                 // Client sent an invalid message
