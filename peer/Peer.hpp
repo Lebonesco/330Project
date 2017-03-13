@@ -5,16 +5,15 @@
 #include <list>
 
 class Peer{
-	int numPieces;
-	int *bitfield; //vector?
-	int *recievedBitfield;
-	int* fileBitfield[];		//keeps track of currently downloading file's bitfield
-	const char *filename;
-	int currentPiece;
-	const char* portArray[];	//hardcode valid port numbers?
-	int piecesRecieved;
 public:
-	Peer();
+	int numPieces;
+	std::vector<int> bitfield;
+	std::vector<const char*> dataBitfield;
+	std::vector<std::string> portList;
+	const char* selfIP;
+	const char* selfPort;
+//public:
+	Peer(const int numChunks, std::string port, std::vector<std::string>& ipPortList, std::string type);
 
 	//Server Specific functions
 	int createSocket(std::string peerType);								//*
@@ -24,29 +23,17 @@ public:
 
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
-	int startLeeching(std::list<std::string>& ipAndPortList);
-	std::list<std::string> updateIpPortList();
+	int startLeeching(std::vector<std::string>& portList);
+	void updatePortList(std::vector<std::string> port);
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
-
-	//Hash functions
-	std::string createHash(std::string text);
-	int checkPieceHash(std::string pieceData, int pieceNum); //check w/server based on piece number
-	bool checkHashes(); //what should parameters be..? (recievedHash, serverHash)
+	void createBitfield(int numChunks, std::string type, std::string data = "");
+	void setFileData(std::vector<const char*> data);
 
 	//Message & Piece Functions									
-	std::string createPieceMSG(int piece, long start, std::string data);
-	std::string createPieceRequest(int bfIndex);
-	int getRequestedPiece(std::string message);
-	void readRecvMSG(std::string data, int socketDescriptor);
-
-	//Not quite sure the best way to do these yet
-	//std::string getPeerId();	//what to pass?
-	//std::string getPeerPort();	//^^
-	//std::string peerIPAndPort(struct sockaddr_in &clientInfo);				//*
-
-	//Other functions of value?
-	void setOutputFileName(const char* name);								//*
+	void readRecvMSG(std::string data, int socketDescriptor);								//*
+	std::string createBitfieldReqMsg();
+	std::string createPieceRequest(int index);
 
 };
 
