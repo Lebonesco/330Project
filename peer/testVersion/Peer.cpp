@@ -118,7 +118,7 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
-	int port = 8000;
+	int port = selfPort;
 
 	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
 
@@ -220,7 +220,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 	
 	int bytesSent;
 
-	if(data.find("type:BITFIELDREQ") != string::npos){
+	if(data.find("type:REQBITFIELD") != string::npos){
 		// .... needs to send bitfield to Leecher requesting it
 		cout << "RECIEVED: Bitfield Request." << endl;
 		
@@ -234,7 +234,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		bfString = ss.str();
 		bitfieldMsgToSend += bfString;
 
-		bytesSent = send(socketDescriptor, bitfieldMsgToSend.c_str(), bitfield.size(), 0); 
+		bytesSent = send(socketDescriptor, bitfieldMsgToSend.c_str(), bitfieldMsgToSend.length(), 0); 
 		cout << "SENT: " << bytesSent << " bytes. Message: " << bitfieldMsgToSend << endl;
 	}
 
@@ -245,8 +245,12 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		string recBF = data.substr(13);
 		vector<int> recBitfield (numPieces, 0);
 
-		for(int i = 0; i < recBF.length(); i++){
+		for(int i = 0; i < recBF.size(); i++){
 			recBitfield[i] = (int)recBF[i];
+		}
+		cout << "Recieved Bitfield: ";
+		for(int j = 0; j < recBF.size(); j++){
+			cout << recBF[j] << " ";
 		}
 		//populate recBitfield****
 		string pieceReqMsgToSend = "type:PIECE|";		//will append index
@@ -292,7 +296,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 		newServerSocket = createSocket("SEEDER");
 		int s = 1;
 		setsockopt(newServerSocket, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int));		// set socket options so address/port can be reused
-		serverStatus = bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
+		serverStatus = ::bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
 		if(serverStatus == 0){
 			cout << "Seeder created on port " << port << endl;
 		}else{
@@ -370,17 +374,19 @@ int Peer::startLeeching(vector<string>& currentPortList){
 								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
 								cout << "Response received." << endl;
 								cout << "Bytes Received: " << recievedBytes << endl;
-								cout << "Message Recieved: " << readBuffer << endl;
 								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
-								//if(recievedBytes < 100){
-								//	break;
-								//}
+								string data = string(writeBuffer.begin(), writeBuffer.end());
+								cout << "Message Recieved: " << data << endl;
+								if(recievedBytes < 100){
+									break;
+								}
 							}
 							string data = string(writeBuffer.begin(), writeBuffer.end());
 							writeBuffer.clear();
 							cout << "Message from Server: " << data << endl;
 
 							//should be new client bitfield every time
+							cout << "(Client): Reading message -> " << data << endl;
 							readRecvMSG(data, seederSocketFD);
 						}
 					}
@@ -396,6 +402,7 @@ int Peer::startLeeching(vector<string>& currentPortList){
 	//}else{
 	//	cout << "Fork failed." << endl;
 	//}
+	return 0;
 }
 
 /* TODO:
@@ -448,7 +455,7 @@ void Peer::setFileData(vector<const char*> data){
 
 
 string Peer::createBitfieldReqMsg(){
-	return "type:BITFIELDREQ";
+	return "type:REQBITFIELD";
 }
 
 string Peer::createPieceRequest(int index){
