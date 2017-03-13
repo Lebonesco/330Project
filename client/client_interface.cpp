@@ -221,6 +221,15 @@ string encode(string x) {
 	return r;
 }
 
+bool fileComplete(std::vector<Peer* p> peerList) {
+	int port_it = 9000;
+
+	//iterate through the peerList
+	//check if files are complete
+	//for ( 
+
+	return true;
+}
 
 //close connection to server
 void Client::close_connection() {
@@ -231,12 +240,12 @@ void Client::close_connection() {
 int main(int argc, char *argv[]) {
 
 	Client c;
-	//Metafile m;
-	//Peer p;
 	int size = 512;
 	std::string message;
 	std::string path;
 	std::string port;
+	std::vector<std::string> ports;
+	std::vector<Peer* p> peers;
 	bool connected = false;	
 	std::string peer_info;
 	std::string bencoded_info;
@@ -245,6 +254,11 @@ int main(int argc, char *argv[]) {
 	if (connected == false) {
 		return -1;
 	}		
+
+	Metafile m = new Metafile(path);
+	// this instance needs to happen for upload and download
+	// assume this is going to be seeder
+	Peer* seeder(m.chunkNumber, 9000, ports, "seeder"); 
 
 	char upORdown = 'a';
 	getUserData(upORdown);
@@ -257,15 +271,12 @@ int main(int argc, char *argv[]) {
 		path = c.getUploadPath();
 
 		//encode port number
-		port = encode(4);
-		cout << c.sendStringData(port) << endl;
-		//port = encode(p.port);
-		//c.sendStringData(port);
+		ports = encode(seeder->port);
+		cout << c.sendStringData(ports) << endl;
 
 		//encode the path
 		message = encode(path);
 		c.sendStringData(message);
-	
 
 	} else {
 		//send client message that user wants to download
@@ -278,14 +289,28 @@ int main(int argc, char *argv[]) {
 		bencoded_info = c.receive(size);
 		//peer_info = decode(bencoded_info);
 		cout << bencoded_info << endl;
-
-		//connect to server and start downloading file?
-		//peer class?
 		
 		//server sends message of number of packages to be sent
 		//recieve listing from server of downloadable files
-		//cout << c.receive(size) << endl;
-		
+		cout << c.receive(size) << endl;
+	
+		//peer class starts leeching
+		Peer* leecher1(m.chunkNumber, 9001, ports, "leecher");
+		peers.pushback(leecher1);
+		Peer* leecher2(m.chunkNumber, 9002, ports, "leecher");
+		peers.pushback(leecher2);
+		Peer* leecher3(m.chunkNumber, 9003, ports, "leecher");
+		peers.pushback(leecher3);
+		for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
+			cout << it << endl;
+		}
+
+		//constantly listen for update list from server to send to peer
+		while(!filesComplete) {
+			//iterate through peers vector
+			//update peer list
+			
+		}
 	}
 
 	c.close_connection();
