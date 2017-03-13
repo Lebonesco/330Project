@@ -24,11 +24,11 @@ public:
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::vector<std::string>& portList);
-	std::vector<std::string> updateIpPortList();
+	void updatePortList(std::vector<std::string> port);
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type, std::string data = "");
-	void setFileData(std::string filename);
+	void setFileData(std::vector<const char*> data);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
