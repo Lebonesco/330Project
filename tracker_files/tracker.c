@@ -58,7 +58,7 @@ void updatePeerList(char **array, int count , const char *s){
 
 // Update a list of structs
 void updateFileList(File f, int uploads, File* array){
-    // Reallocate array for new addresses that connected
+    // Reallocate array for new file to be added
     array = realloc(array, uploads * sizeof(*array));
     
     // Add new file to list
@@ -66,7 +66,7 @@ void updateFileList(File f, int uploads, File* array){
 }
 
 // Fill in the file struct with correct values
-File initializeFile(char filename, int chunks_num, int port_num){
+File initializeFile(char filename, int chunks_num, char port_num){
     File file;
     
     strcpy(file.file_name, &filename);
