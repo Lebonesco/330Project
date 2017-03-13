@@ -238,9 +238,21 @@ int main(void)
         updatePeerList(data_array,count,s);
         
         // Print out contents in list
-        puts("Contents in list:");
+        puts("Contents in total list:");
         for (int i = 0; i < count; i++){
             printf("%d) %s\n", i+1, data_array[i]);
+        }
+        
+        // Print out contents in port list
+        puts("Contents in port list:");
+        for (int i = 0; i < uploader_count; i++){
+            printf("%d) %s\n", i+1, port_array[i]);
+        }
+        
+        // Print out contents in file name list
+        puts("Contents in file name list:");
+        for (int i = 0; i < filename_count; i++){
+            printf("%d) %s\n", i+1, name_array[i]);
         }
         
         
