@@ -67,7 +67,7 @@ void updatePortList(char **array, int count , const char *s){
 }
 
 // Add file name to file name list
-void updatePortList(char **array, int count , const char *s){
+void updateNameList(char **array, int count , const char *s){
     // Reallocate array for new file name
     array = realloc(array, count * sizeof(*array));
     
