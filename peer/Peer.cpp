@@ -20,6 +20,8 @@ using namespace std;
 Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, string type){
 	numPieces = numChunks;
 	portList = recvPortList;
+	ChunkQueue tempQ (numChunks);
+	rareQueue = tempQ;
 	createBitfield(numChunks, type);
 	selfPort = port.c_str();
 	string iP = "127.0.0.1";
@@ -118,7 +120,6 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
-	//int port = selfPort;
 
 	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
 
@@ -252,12 +253,10 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		for(int j = 0; j < recBF.size(); j++){
 			cout << recBF[j] << " ";
 		}
-		//populate recBitfield****
-		string pieceReqMsgToSend = "type:PIECE|";		//will append index
-		//queue.updateQueue(recv, bitfield)
-		//set of all available
-		// call piece select function
+		cout << endl; 
+		rareQueue->updateQueue(bitfield, recBitfield);
 	}
+
 	if(data.find("type:REQUEST") != string::npos){
 		// .... needs to send appropriate piece
 		cout << "RECIEVED: Piece Request." << endl;
@@ -265,6 +264,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		string pieceToSend = "type:PIECE|A placeholder piece";
 		bytesSent = send(socketDescriptor, pieceToSend.c_str(), pieceToSend.length(), 0);		// need .c_str() to convert from standard string to c string
 	}
+
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
 		cout << "RECIEVED: Data Piece." << endl;
@@ -275,6 +275,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		string dataToWrite = data.substr(data.find("type:PIECE"));
 		dataBitfield[index] = dataToWrite.c_str();
 	}
+
 	if(data.find("type:UPDATE") != string::npos){
 
 	}
@@ -415,8 +416,13 @@ void Peer::updatePortList(vector<string> updatedPortList){
 }
 
 // Update list of which peers still have interesting data, remove those that don't
+// **IN PROGRESS**
 void Peer::getPeerData(vector<int> seederList){
-
+	for(int i = 0; i < seederList.size(); i++){
+		vector<int> availableBitfield;
+		string bFReqMsg = createBitfieldReqMsg();
+		send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
+	}
 }
 
 bool Peer::fileComplete(){
@@ -429,10 +435,7 @@ bool Peer::fileComplete(){
 	return true;
 }
 
-/* TODO: 
- 	  1. deal with populating data vector if peer is original seeder
-*/
-void Peer::createBitfield(int numChunks, string type, string data){
+void Peer::createBitfield(int numChunks, string type){
 	if(type == "Leech"){
 		vector<int> tBitfield (numChunks, 0);
 		bitfield = tBitfield;
@@ -440,11 +443,6 @@ void Peer::createBitfield(int numChunks, string type, string data){
 	if(type == "Seed"){
 		vector<int> tBitfield (numChunks, 1);
 		bitfield = tBitfield;
-
-		if(data != ""){
-			//Split and set file data
-		}
-
 	}
 }
 
@@ -459,7 +457,14 @@ string Peer::createBitfieldReqMsg(){
 }
 
 string Peer::createPieceRequest(int index){
+	stringstream ss;
+	string msg;
 
+	ss << "type:REQPIECE";
+	ss << index;
+	msg = ss.str();
+
+	return msg;
 }
 
 int main(){
