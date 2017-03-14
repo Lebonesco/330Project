@@ -8,14 +8,26 @@ int main() {
 	queue.Display();
 	
 	vector<int> vec1;
-	vec1.push_back(3);
-	vec1.push_back(9);
-	queue.updateQueue(vec1);
-	queue.Display();
+	vec1.push_back(1);
+	vec1.push_back(1);
+	vec1.push_back(0);
+	vec1.push_back(0);
+	vec1.push_back(0);
+	vec1.push_back(0);
+	vec1.push_back(0);
+	vec1.push_back(1);
 
 	vector<int> vec2;
 	vec2.push_back(7);
-	queue.updateQueue(vec2);
+	vec2.push_back(1);
+	vec2.push_back(1);
+	vec2.push_back(0);
+	vec2.push_back(0);
+	vec2.push_back(0);
+	vec2.push_back(0);
+	vec2.push_back(0);
+	vec2.push_back(1);
+	queue.updateQueue(vec1, vec2);
 	queue.Display();
 
 	queue.remove(0);

@@ -12,7 +12,7 @@ public:
 	Metafile(string file);
 	~Metafile();
 	void displayMetafile();
-	int getChunkNumber(string file); // this needs to get called to return chunk number
+	int getChunkNumber(); // this needs to get called to return chunk number
 	void generateChunks();
 	void combineChunks(int nParts);
 	vector<char*> getBitfield(); // returns bitfield array filled with data
