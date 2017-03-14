@@ -1,10 +1,9 @@
 //
 //  tracker.c
 //
+//  Peer Tracker file
 //
-//  Created by Elijah Caluya on 3/1/17.
-//
-//
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +82,7 @@ void freeArray(char** array, int index){
         char* ptr = array[i];
         free(ptr);
     }
+    free(array);
 }
 
 // Deallocate memory for one dimensional array
@@ -237,19 +237,19 @@ int main(void)
         // Update peer list with new client that just connected
         updateTotalList(data_array,count,s);
         
-        // Print out contents in list
+        // TESTING: Print out contents in list
         puts("Contents in total list:");
         for (int i = 0; i < count; i++){
             printf("%d) %s\n", i+1, data_array[i]);
         }
         
-        // Print out contents in port list
+        // TESTING: Print out contents in port list
         puts("Contents in port list:");
         for (int i = 0; i < uploader_count; i++){
             printf("%d) %s\n", i+1, port_array[i]);
         }
         
-        // Print out contents in file name list
+        // TESTING: Print out contents in file name list
         puts("Contents in file name list:");
         for (int i = 0; i < filename_count; i++){
             printf("%d) %s\n", i+1, name_array[i]);
@@ -269,36 +269,38 @@ int main(void)
             
             if (strncmp(buffer,"download",8)==0){
                 // Send fake message to client
-                printf("Requested download\n");
+                puts("requested download");
                 send(new_fd, "Bencoded message", 16, 0);
             }
+            
             else if (strncmp(buffer,"upload",6)==0){
-                // Request for size of files
-                printf("Requested upload\n");
+                puts("requested upload");
                 filename_count++;
                 uploader_count++;
             
                 if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                if (recv(new_fd, file_name,15,0) < 0){
+                if (recv(new_fd, file_name,20,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
-                updateNameList(name_array,filename_count,file_name);
+                // Add contents received to their repsective lists
                 updatePortList(port_array,uploader_count,port_number);
-                printf("File name received: %s\n", file_name);
+                updateNameList(name_array,filename_count,file_name);
                 printf("Port number received: %s\n", port_number);
+                printf("File name received: %s\n", file_name);
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
+                puts("requested update");
+                uploader_count++;
                 if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                filename_count++;
                 updatePortList(port_array,uploader_count,port_number);
-                //Send back update list
+                //TODO: Send back updated list
             }
             else {
                 // Client sent an invalid message

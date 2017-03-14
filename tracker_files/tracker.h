@@ -9,11 +9,6 @@
 #ifndef tracker_h
 #define tracker_h
 
-typedef struct {
-    char file_name[100];
-    char port[4];
-}File;
-
 void updateTotalList(char **array, int count, const char *s);
 
 void updatePortList(char **array, int count, const char *s);
