@@ -9,10 +9,23 @@
 #include <sstream>			// for stringstreams
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
-//#include <openssl/sha.h>	// include for SHA1 doesn't work yet because I need to configue my build but the function is correct
 #include "Peer.hpp"
+//#include "metafile.hpp"
 
 using namespace std;
+
+/* TODO:
+		1. Figure out how to set peer IP to machine's IP
+*/
+Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, string type){
+	numPieces = numChunks;
+	portList = recvPortList;
+	createBitfield(numChunks, type);
+	selfPort = port.c_str();
+	string iP = "127.0.0.1";
+	selfIP = iP.c_str();
+
+}
 
 int Peer::createSocket(string peerType){
 	/*	*Create a socket*
@@ -56,6 +69,8 @@ int Peer::connectToClient(const char* ipAddr, const char* port){
 	}else{
 
 		connectionStatus = connect(sockDesc, ptrToDevInfo->ai_addr, ptrToDevInfo->ai_addrlen);		// attempt connection
+		cout << "function:connectToClient -> No error connecting to client." << endl;
+
 
 		if(connectionStatus != 0){			// check connection
 			cout << "There was a connection error.\n";
@@ -87,20 +102,23 @@ int Peer::acceptConnection(int seederDesc){
 
 }
 
+/* TODO:
+		1. May need to fork listen process ( ask Roscoe )	
+*/
 int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	
 	int listener;			
 	int newClientSocket;
 	int recievedBytes;		// recieved size
 	int maxConnectedFD;
-	char * socketReadBuff;
+	char socketReadBuff[100];
 	vector<char> socketWriteBuffer;
 	fd_set connectedSocketFDs;
 	FD_ZERO(&connectedSocketFDs);		// set is initialized to 0
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
-	int port = 8000;
+	//int port = selfPort;
 
 	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
 
@@ -130,11 +148,13 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 						// if the current socket is the host/server that was passed in
 						if(i == socketDesc){
 							newClientSocket = acceptConnection(socketDesc);
-
+							cout << "(Server): Connection accepted." << endl;
+ 
 							// if connection didn't fail
 							if(newClientSocket != -1){
 
 								FD_SET(newClientSocket, &allFDs);
+								cout << "(Server): FD added to connection set." << endl;
 								if(newClientSocket > maxConnectedFD){
 									// set new max FD
 									maxConnectedFD = newClientSocket;
@@ -142,7 +162,9 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 									// send bitfield to client
 									// AS OF NOW this may as well be a place holder since bitfield
 									// currently has no functionality!
-									send(newClientSocket, bitfield, sizeof(bitfield), 0);
+
+//									send(newClientSocket, &bitfield, bitfield.size(), 0);
+//									cout << "(Server): Sending message to Client." << endl;
 								}
 							}
 
@@ -152,17 +174,29 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 							// MSG_PEEK looks at the next message to be recieved but
 							// does not actually read it
 							recievedBytes = recv(i, socketReadBuff, 1, MSG_PEEK);
+//							cout << "(Server): Message Recieved." << endl;
 							while(recievedBytes > 0){
-								recievedBytes = recv(i, socketReadBuff, 64, 0);
+								recievedBytes = recv(i, socketReadBuff, sizeof(socketReadBuff), 0);
 								socketWriteBuffer.insert(socketWriteBuffer.end(), socketReadBuff, socketReadBuff + recievedBytes);
+								if(recievedBytes < 64){
+									break;
+								}
 							}
 							// copy recieved message data to 'data' variable
 							string data = string(socketWriteBuffer.begin(), socketWriteBuffer.end());
 							socketWriteBuffer.clear();
 
 							// Take appropriate action based on message type
+							// and check if client has sent a 'completed' message
+//							cout << "(Server): Reading message: " << data << endl;
 							readRecvMSG(data, i);
 
+							// ***Completed message type doesn't currently exist...***
+							if(data.find("type:COMPLETED") != string::npos){
+								cout << "File transfer to peer completed. Closing connection." << endl;
+								close(i);
+								FD_CLR(i, &allFDs);
+							}
 						}
 					}
 				}
@@ -175,28 +209,74 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 
 }
 
+/* TODO:
+		1. Handle a recieved bitfield message
+			- choose piece and request
+		2. handle a piece request
+			-  get requested piece and send as piece message
+		3. bencoding (encode/decode)
+*/
 void Peer::readRecvMSG(string data, int socketDescriptor){
-	// Handle all cases with one function:
-	//		- bitfield message
-	//		- piece request
-
+	
 	int bytesSent;
 
-	if(data.find("type:BITFIELDREQ") != string::npos){
+	if(data.find("type:REQBITFIELD") != string::npos){
 		// .... needs to send bitfield to Leecher requesting it
-		int bitfieldToSend [3] = {0, 1, 0};			// *placeholder*
-		bytesSent = send(socketDescriptor, bitfieldToSend, sizeof(bitfieldToSend), 0); 
+		cout << "RECIEVED: Bitfield Request." << endl;
+		
+		string bitfieldMsgToSend = "type:BITFIELD";
+		stringstream ss;
+		string bfString;
+
+		for(size_t i = 0; i < bitfield.size(); ++i){
+			ss << bitfield[i];
+		}
+		bfString = ss.str();
+		bitfieldMsgToSend += bfString;
+
+		bytesSent = send(socketDescriptor, bitfieldMsgToSend.c_str(), bitfieldMsgToSend.length(), 0); 
+		cout << "SENT: " << bytesSent << " bytes. Message: " << bitfieldMsgToSend << endl;
 	}
+
 	if(data.find("type:BITFIELD") != string::npos){
-		//update
+		// mark indices where data is available
+		cout << "RECIEVED: Bitfield." << endl;
+
+		string recBF = data.substr(13);
+		vector<int> recBitfield (numPieces, 0);
+
+		for(int i = 0; i < recBF.size(); i++){
+			recBitfield[i] = (int)recBF[i];
+		}
+		cout << "Recieved Bitfield: ";
+		for(int j = 0; j < recBF.size(); j++){
+			cout << recBF[j] << " ";
+		}
+		//populate recBitfield****
+		string pieceReqMsgToSend = "type:PIECE|";		//will append index
+		//queue.updateQueue(recv, bitfield)
+		//set of all available
+		// call piece select function
 	}
 	if(data.find("type:REQUEST") != string::npos){
 		// .... needs to send appropriate piece
-		string pieceToSend = "A placeholder";
+		cout << "RECIEVED: Piece Request." << endl;
+
+		string pieceToSend = "type:PIECE|A placeholder piece";
 		bytesSent = send(socketDescriptor, pieceToSend.c_str(), pieceToSend.length(), 0);		// need .c_str() to convert from standard string to c string
 	}
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
+		cout << "RECIEVED: Data Piece." << endl;
+
+		char sIndex = data.at(data.find("index:"));
+		int index = (int)sIndex;
+
+		string dataToWrite = data.substr(data.find("type:PIECE"));
+		dataBitfield[index] = dataToWrite.c_str();
+	}
+	if(data.find("type:UPDATE") != string::npos){
+
 	}
 
 }
@@ -216,9 +296,9 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 		newServerSocket = createSocket("SEEDER");
 		int s = 1;
 		setsockopt(newServerSocket, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int));		// set socket options so address/port can be reused
-		serverStatus = bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
+		serverStatus = ::bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
 		if(serverStatus == 0){
-			cout << "Seeder created on port" << port << endl;
+			cout << "Seeder created on port " << port << endl;
 		}else{
 			cout << "Failed to bind seeder on port" << port << endl;
 		}
@@ -232,7 +312,14 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 	return 0;
 }
 
-int Peer::startLeeching(list<string>& ipAndPortList){
+
+/* TODO:
+		1. Handle forking so peer can act as a seeder while leeching
+			- basic attempt implemented (untested)
+		2. Set 'myIP' 'myPort' vars before calling startSeeding()
+		3. Send a file complete message to seeder so it removes FD from leecher set
+*/
+int Peer::startLeeching(vector<string>& currentPortList){
 	// start leeching
 	vector<char> writeBuffer;
 	vector<int> seederList;
@@ -242,137 +329,159 @@ int Peer::startLeeching(list<string>& ipAndPortList){
 	int recievedBytes;
 	string ip;
 	string port;
-	char* readBuffer = new char[100];		// or whatever size we need it to be
-	list<string>::iterator it;
+	string myPort;		// port for listening
+	string myIP;			// ip for listening
+	char readBuffer[100];		// or whatever size we need it to be	
 	fd_set peerFDs;
 	FD_ZERO(&peerFDs);
 
-	while(!fileComplete()){
-		//check for new Seeders
-		ipAndPortList = updateIpPortList();
+	//
 
-		for(it = ipAndPortList.begin(); it != ipAndPortList.end(); ++it){
-			//***FOR NOW*** I'm assuming that the delimeter between port and ip will be a ':'
-			
-			ip = it->substr(0, it->find(':'));		// get ip		
-			port = it->substr(it->find(':') + 1, it->length());		// get port
+	// MUST FORK THIS FUNCTION
+	
+	pid_t pid = fork();
+	if(pid == 0){
+		startSeeding(myIP.c_str(), myPort.c_str());
+	}else if(pid > 0){
+	
 
-			seederSocketFD = connectToClient(ip.c_str(), port.c_str());			//connect to seeder
-			if(!FD_ISSET(seederSocketFD, &peerFDs)){
-				FD_SET(seederSocketFD, &peerFDs);
-				if(seederSocketFD != -1){
-					seederList.push_back(seederSocketFD);			//add seeder to list of seeders
-					recievedBytes = recv(seederSocketFD, readBuffer, 1, MSG_PEEK);		// peek at incoming message
-					while(recievedBytes > 0){
-						memset(readBuffer, 0, 100);			//initialize buffer to -1's
-						recievedBytes = recv(seederSocketFD, readBuffer, 100, 0);
-						writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+		while(!fileComplete()){
+
+			for(i = 0; i < portList.size(); i++){
+						
+				port = portList[i];		// get port
+
+				if(port == selfPort){
+					continue;
+				}else{
+					cout << "Attempting to connect to port " << portList[i] << endl;
+
+					seederSocketFD = connectToClient(selfIP, port.c_str());			//connect to seeder: port and ip need to be c strings
+// 					cout << "Connection attempt successful." << endl;
+					if(!FD_ISSET(seederSocketFD, &peerFDs)){
+						FD_SET(seederSocketFD, &peerFDs);
+						cout << "(Client): Added new FD to set." << endl;
+						if(seederSocketFD != -1){
+							seederList.push_back(seederSocketFD);			//add seeder to list of seeders
+							string bFReqMsg = createBitfieldReqMsg();
+							send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
+							cout << "(Client): Sent bfReq -> " << bFReqMsg << endl;
+							recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
+							while(recievedBytes > 0){
+								// decode message before passing to readRecvMSG
+								memset(readBuffer, 0, 100);			//initialize buffer to 0's
+								cout << "Waiting for response." << endl;
+								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
+								cout << "Response received." << endl;
+								cout << "Bytes Received: " << recievedBytes << endl;
+								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+								string data = string(writeBuffer.begin(), writeBuffer.end());
+								cout << "Message Recieved: " << data << endl;
+								if(recievedBytes < 100){
+									break;
+								}
+							}
+							string data = string(writeBuffer.begin(), writeBuffer.end());
+							writeBuffer.clear();
+							cout << "Message from Server: " << data << endl;
+
+							//should be new client bitfield every time
+							cout << "(Client): Reading message -> " << data << endl;
+							readRecvMSG(data, seederSocketFD);
+						}
 					}
-					string data = string(writeBuffer.begin(), writeBuffer.end());
-
-					//should be new client bitfield every time
-					readRecvMSG(data, seederSocketFD);
 				}
 			}
+			if(seederList.size() > 0){
+				// need to update list and remove any seeders that no longer have useful data
+				// ***still need a function to do this so placeholder for now***
+				getPeerData(seederList);
+			}
 		}
-		if(seederList.size() > 0){
-			// need to update list and remove any seeders that no longer have useful data
-			// ***still need a function to do this so placeholder for now***
-			getPeerData(seederList);
-		}
+		//SEND FILE COMPLETE MESSAGE
+	}else{
+		cout << "Fork failed." << endl;
 	}
+	return 0;
 }
 
-list<string> Peer::updateIpPortList(){
+/* TODO:
+		1. Send update request
+		2. Update peer's ipPortList
+*/
+void Peer::updatePortList(vector<string> updatedPortList){
 	// needs to update port/ip from server
+	portList = updatedPortList;
 }
 
 // Update list of which peers still have interesting data, remove those that don't
 void Peer::getPeerData(vector<int> seederList){
 
-	/*
-	while(1){
-		int x = 0;
-		int numFilePieces = 5; 					// placeholder
-		for(int j = 0; j < numFilePieces; j++){		// bitfield.length might be syntax error but for now its a placeholder
-			if(fileBitfield[bitfield[j]] != 1){			// if peer does not have current piece j
-				x = x % seederList.size();
-				cout << "Getting piece" << bitfield[j] << endl;
-				// send peice request
-
-			}
-		}else{
-
-		}
-	}
-	*/
 }
 
 bool Peer::fileComplete(){
 	// if all bitfield indices == 1 return true
-	int numFilePieces = 5;
-	for(int i = 0; i < numFilePieces; i++){
-		if(bitfield[i] != 1){
+	for(int i = 0; i < numPieces; i++){
+		if(bitfield[i] == 0){
 			return false;
 		}
-		continue;
 	}
 	return true;
 }
 
-
-
-
-string Peer::createPieceRequest(int bfIndex){
-	/*	*Create message to request a piece based on returned Peer bitfield*
-	 *
-	 */
-
-	stringstream ss;
-
-	ss << "type:REQUEST";
-	ss << "|index:" << bfIndex;
-	return ss.str();
-}
-
-// this might also be able to be done when piece request is received
-string Peer::createPieceMSG(int piece, long start, string data){
-	//Creates a piece message to send to a leecher
-
-	stringstream ss;
-
-	ss << "type:PIECE";
-	ss << "|index:" << piece;
-	ss << "|start:" << start;
-	ss << "|data:" << data;
-
-	return ss.str();
-}
-
-// ** leaving hash functionality until later **
-/*
-string Peer::createHash(string text){
-	//	create the SHA-1 hash for a piece of text
-
-	char hash[21];
-	char output[41];
-	memset(hash, '\0', 21);
-	memset(output, '\0', 41);
-
-	SHA1((unsigned char*) text.c_str(), text.length(), (unsigned char*) hash);		//doesn't currently work b/c of include issue
-	for(int i = 0; i < 20; i++){
-		sprintf(output + i * 2, "02x", (unsigned int) hash[i]);
-	}
-	return string(output);		//returns hash of 'text'
-}
+/* TODO: 
+ 	  1. deal with populating data vector if peer is original seeder
 */
+void Peer::createBitfield(int numChunks, string type, string data){
+	if(type == "Leech"){
+		vector<int> tBitfield (numChunks, 0);
+		bitfield = tBitfield;
+	}
+	if(type == "Seed"){
+		vector<int> tBitfield (numChunks, 1);
+		bitfield = tBitfield;
 
-void Peer::setOutputFileName(const char* name){
-	// Change Peer output filename
+		if(data != ""){
+			//Split and set file data
+		}
 
-	filename = name;
+	}
+}
+
+
+void Peer::setFileData(vector<const char*> data){
+	dataBitfield = data;
+}
+
+
+string Peer::createBitfieldReqMsg(){
+	return "type:REQBITFIELD";
+}
+
+string Peer::createPieceRequest(int index){
+
 }
 
 int main(){
+
+	int chunks1 = 5;
+	int chunks2 = 5;
+	string testIP = "127.0.0.1";
+	vector<string> testList;
+	string testPort1 = "8000";
+	string testPort2 = "8080";
+	testList.push_back(testPort1);
+	testList.push_back(testPort2);
+
+	Peer* seeder = new Peer(chunks1, testPort1, testList, "Leech");
+	Peer* leecher = new Peer(chunks2, testPort2, testList, "Leech");
+
+	//cout << seeder->selfIP << endl;
+	//cout << seeder->portList[0];
+
+
+	seeder->startSeeding(seeder->selfIP, seeder->selfPort);
+//	leecher->startLeeching(leecher->portList);
+
 	return 0;
 }

@@ -9,20 +9,16 @@
 #ifndef tracker_h
 #define tracker_h
 
-typedef struct {
-    char file_name[100];
-    int chunks;
-    int port;
-}File;
+void updateTotalList(char **array, int count, const char *s);
 
-void updatePeerList(char **array, int count, const char *s);
+void updatePortList(char **array, int count, const char *s);
 
-void updateFileList(File f, int uploads, File* array);
+void updateNameList(char **array, int count, const char *s);
 
-File initializeFile(char filename, int chunks_num, int port_num);
+void freeArray(char** array, int index);
 
-void freeFileArray(File* array);
+char* encode_int(char* x);
 
-void freePeerArray(char** array, int index);
+char* encode_str(char* x);
 
 #endif /* tracker_h */

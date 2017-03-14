@@ -1,10 +1,9 @@
 //
 //  tracker.c
 //
+//  Peer Tracker file
 //
-//  Created by Elijah Caluya on 3/1/17.
-//
-//
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +20,7 @@
 
 #include "tracker.h"
 
-#define PORT "9532"  // the port users will be connecting to
+#define PORT "8500"  // the port users will be connecting to
 
 #define BACKLOG 100     // how many pending connections queue will hold
 
@@ -46,7 +45,8 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void updatePeerList(char **array, int count , const char *s){
+// Add client to total peer list
+void updateTotalList(char **array, int count , const char *s){
     // Reallocate array for new addresses that connected
     array = realloc(array, count * sizeof(*array));
 
@@ -55,37 +55,70 @@ void updatePeerList(char **array, int count , const char *s){
     strcpy(array[count-1], s);
 }
 
-// FIX to update a list of structs
-void updateFileList(File f, int uploads, File* array){
-    // Reallocate array for new addresses that connected
-    array = realloc(array, uploads * sizeof(*array));
+// Add port number to port list
+void updatePortList(char **array, int count , const char *s){
+    // Reallocate array for new port num
+    array = realloc(array, count * sizeof(*array));
     
-   
+    // Add port num to list
+    array[count-1] = malloc(4 * sizeof(char));
+    strcpy(array[count-1], s);
 }
 
-// Fill in the file struct with correct values
-File initializeFile(char filename, int chunks_num, int port_num){
-    File file;
+// Add file name to file name list
+void updateNameList(char **array, int count , const char *s){
+    // Reallocate array for new file name
+    array = realloc(array, count * sizeof(*array));
     
-    strcpy(file.file_name, &filename);
-    file.chunks = chunks_num;
-    file.port = port_num;
-    
-    return file;
+    // Add file name to list
+    array[count-1] = malloc(20 * sizeof(char));
+    strcpy(array[count-1], s);
 }
 
-// Free memory used in total peer array
-void freePeerArray(char** array, int index){
+
+// Free memory used in 2 dimensional array
+void freeArray(char** array, int index){
     for (int i = 0; i < index; i++){
-        char* ptr = array[i];
-        free(ptr);
+        free(array[i]);
     }
-}
-
-// Free memory used for file array
-void freeFileArray(File* array){
     free(array);
 }
+
+// Deallocate memory for one dimensional array
+void deallocateArray(char* array){
+    free(array);
+}
+
+// Encode integer
+char* encode_int(char* x){
+    char* val = malloc(6*sizeof(*val));
+    val[0] = 'i';
+    for (int i = 1; i <= 4;i++){
+        val[i] = x[i-1];
+    }
+    val[5] = 'e';
+    
+    return val;
+}
+
+// Encode string
+char* encode_str(char* x){
+    char* val = malloc (100 * sizeof(*val));
+    int length = strlen(x);
+    int first = length /10;
+    int second = length % 10;
+    
+    val[0] = first + '0';
+    val[1] = second + '0';
+    val[2] = ':';
+    for (int i = 0; i < length; i++){
+        val[i+3] = x[i];
+    }
+    
+    return val;
+}
+
+
 
 int main(void)
 {
@@ -98,7 +131,8 @@ int main(void)
     char s[INET6_ADDRSTRLEN];
     int rv,n;
     char buffer[16];
-    char file_name[15];
+    char file_name[20];
+    char port_number[4];
     
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -161,11 +195,23 @@ int main(void)
         data_array[i] = malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
     
-    // Array for storing file properties
-    File* file_array = malloc(1 * sizeof(*file_array));
+    // Port number array
+    char **port_array = malloc(1 * sizeof(*port_array));
+    for (int i = 0; i < 4; i++){
+        port_array[i] = malloc(4 * sizeof(char));
+    }
+    
+    // File name array
+    char **name_array = malloc(1 * sizeof(*name_array));
+    for (int i = 0; i < 20; i++){
+        name_array[i] = malloc(20 * sizeof(char));
+    }
     
     // Number of clients who want to upload something
     int uploader_count = 0;
+    
+    // Number of filenames that have been sent
+    int filename_count = 0;
     
     // Number of clients who have connected
     int count = 0;
@@ -188,12 +234,24 @@ int main(void)
         printf("Number of peers: %d\n", count);
         
         // Update peer list with new client that just connected
-        updatePeerList(data_array,count,s);
+        updateTotalList(data_array,count,s);
         
-        // Print out contents in list
-        puts("Contents in list:");
+        // TESTING: Print out contents in list
+        puts("Contents in total list:");
         for (int i = 0; i < count; i++){
             printf("%d) %s\n", i+1, data_array[i]);
+        }
+        
+        // TESTING: Print out contents in port list
+        puts("Contents in port list:");
+        for (int i = 0; i < uploader_count; i++){
+            printf("%d) %s\n", i+1, port_array[i]);
+        }
+        
+        // TESTING: Print out contents in file name list
+        puts("Contents in file name list:");
+        for (int i = 0; i < filename_count; i++){
+            printf("%d) %s\n", i+1, name_array[i]);
         }
         
         
@@ -210,19 +268,38 @@ int main(void)
             
             if (strncmp(buffer,"download",8)==0){
                 // Send fake message to client
-                printf("Requested download\n");
+                puts("requested download");
                 send(new_fd, "Bencoded message", 16, 0);
             }
+            
             else if (strncmp(buffer,"upload",6)==0){
-                // Request for size of files
-                printf("Requested upload\n");
+                puts("requested upload");
+                filename_count++;
                 uploader_count++;
-                if (recv(new_fd, file_name,15,0) < 0){
+            
+                if (recv(new_fd, port_number,4,0) < 0){
                     printf("Error receiving from client\n");
                 }
+                if (recv(new_fd, file_name,20,0) < 0){
+                    printf("Error receiving from client\n");
+                }
+                
+                // Add contents received to their repsective lists
+                updatePortList(port_array,uploader_count,port_number);
+                updateNameList(name_array,filename_count,file_name);
+                printf("Port number received: %s\n", port_number);
                 printf("File name received: %s\n", file_name);
                 
-                
+            }
+            
+            else if (strncmp(buffer,"update",6)==0){
+                puts("requested update");
+                uploader_count++;
+                if (recv(new_fd, port_number,4,0) < 0){
+                    printf("Error receiving from client\n");
+                }
+                updatePortList(port_array,uploader_count,port_number);
+                //TODO: Send back updated list
             }
             else {
                 // Client sent an invalid message
@@ -234,11 +311,13 @@ int main(void)
             close(new_fd);
             exit(0);
         }
+        
+        freeArray(data_array, count);
+        freeArray(name_array, filename_count);
+        freeArray(port_array, uploader_count);
+        
         close(new_fd);  // parent doesn't need this
     }
-    
-    freeFileArray(file_array);
-    freePeerArray(data_array,count);
     
     return 0;
 }
