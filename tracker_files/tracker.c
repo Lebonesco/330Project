@@ -79,8 +79,7 @@ void updateNameList(char **array, int count , const char *s){
 // Free memory used in 2 dimensional array
 void freeArray(char** array, int index){
     for (int i = 0; i < index; i++){
-        char* ptr = array[i];
-        free(ptr);
+        free(array[i]);
     }
     free(array);
 }
@@ -312,12 +311,13 @@ int main(void)
             close(new_fd);
             exit(0);
         }
+        
+        freeArray(data_array, count);
+        freeArray(name_array, filename_count);
+        freeArray(port_array, uploader_count);
+        
         close(new_fd);  // parent doesn't need this
     }
-    
-    freeArray(data_array, count);
-    freeArray(name_array, filename_count);
-    freeArray(port_array, uploader_count);
     
     return 0;
 }
