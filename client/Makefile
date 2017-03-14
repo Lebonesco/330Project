@@ -1,5 +1,5 @@
-SOURCES = client_interface.cpp main.cpp
-HEADERS = client.hpp
+SOURCES =  main.cpp
+//HEADERS = client.hpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 RM = rm
@@ -9,7 +9,7 @@ CPPFLAGS = -std=c++11
 %.o: %.c
 	$(CC) -c $(CPPFLAGS) $<
 
-all: client
+//all: client
 
 client: $(OBJECTS)
 	$(CC) -o $@ $(OBJECTS)

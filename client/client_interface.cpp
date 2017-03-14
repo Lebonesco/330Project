@@ -23,8 +23,10 @@
 #include <map>
 #include "client.hpp"
 using namespace std;
+//using namespace metafile;
+//using namespace peer;
 
-#define PORT 9532
+#define PORT 8500
 #define MAXDATASIZE 100
 
 //figure out what the user wants to do
@@ -220,7 +222,7 @@ string encode(string x) {
 	r.append(x);
 	return r;
 }
-
+/*
 bool fileComplete(std::vector<Peer* p> peerList) {
 	int port_it = 9000;
 
@@ -230,7 +232,7 @@ bool fileComplete(std::vector<Peer* p> peerList) {
 
 	return true;
 }
-
+*/
 //close connection to server
 void Client::close_connection() {
 	close(sock);
@@ -240,12 +242,13 @@ void Client::close_connection() {
 int main(int argc, char *argv[]) {
 
 	Client c;
+	
 	int size = 512;
 	std::string message;
 	std::string path;
 	std::string port;
 	std::vector<std::string> ports;
-	std::vector<Peer* p> peers;
+	std::vector<peer::Peer* p> peers;
 	bool connected = false;	
 	std::string peer_info;
 	std::string bencoded_info;
@@ -255,7 +258,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}		
 
-	Metafile m = new Metafile(path);
+	metafile::Metafile m = new Metafile(path);
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
 	Peer* seeder(m.chunkNumber, 9000, ports, "seeder"); 
@@ -289,7 +292,6 @@ int main(int argc, char *argv[]) {
 		bencoded_info = c.receive(size);
 		//peer_info = decode(bencoded_info);
 		cout << bencoded_info << endl;
-		
 		//server sends message of number of packages to be sent
 		//recieve listing from server of downloadable files
 		cout << c.receive(size) << endl;
@@ -312,10 +314,8 @@ int main(int argc, char *argv[]) {
 			
 		}
 	}
-
 	c.close_connection();
 
 	return 0;	
 }
 */
-
