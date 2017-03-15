@@ -70,6 +70,7 @@ char* encode_list(char **array, int index){
     char *val = (char*)malloc(4*index*sizeof(char));
     for (int i = 0; i < index; i++){
         strcat(val,array[i]);
+        strcat(val,":");
     }
     
     return val;
@@ -195,7 +196,6 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
-    //puts("creating lists...");
     data_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
         data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
@@ -212,7 +212,6 @@ int main(void)
     for (int i = 0; i < 20; i++){
         name_array[i] = (char *)malloc(20 * sizeof(char));
     }
-    //puts("lists successfully created");
     
     // Number of clients who want to upload something
     int uploader_count = 0;
