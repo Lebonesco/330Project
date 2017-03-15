@@ -40,7 +40,7 @@ class ChunkQueue {
 		int getSize();
 		vector<Chunk> getQueue();
 		int getChunk(set<int> values);
-		void updateQueue(vector<int> values);
+		void updateQueue(vector<int> peer, vector<int> neighbor);
 		void Display();
 		void remove(int idx);
 	private:
