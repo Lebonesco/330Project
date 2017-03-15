@@ -17,6 +17,7 @@ int main(int argc, char * argv[]) {
         std::string message;
         std::string path;
         std::vector<std::string> ports;
+	//std::vector<peer::Peer* p> peers;
         bool connected = false;
         std::string peer_info;
         std::string bencoded_info;
@@ -31,6 +32,7 @@ int main(int argc, char * argv[]) {
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
 	Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "seeder"); 
+	seeder.startSeeding();
 
 	char upORdown = 'a';
 	getUserData(upORdown);
@@ -48,7 +50,7 @@ int main(int argc, char * argv[]) {
 		//cout << c.sendStringData(encode(seeder->selfPort)) << endl;
 
 		//read in garbage message
-		//c.receive(&garbage);
+		garbage = c.receive(20);
 
 		//encode the path
 		//message = encode(path);
@@ -67,12 +69,38 @@ int main(int argc, char * argv[]) {
                 //peer_info = decode(bencoded_info);
                 cout << bencoded_info << endl;
 
-//        	Peer *p = new Peer(const int numChunks, p.port, vector<string>& recvPortList, string type);
-
-
-                //connect to server and start downloading file?
                 //peer class?
+		//peer class starts leeching
+		Peer* leecher1(m.chunkNumber, 9001, ports, "leecher");
+		peers.pushback(leecher1);
+		leecher1.startLeeching();
+		c.sendStringData("9001");
 
+		Peer* leecher2(m.chunkNumber, 9002, ports, "leecher");
+		peers.pushback(leecher2);
+		leecher2.startLeeching();
+		c.sendStringData("9002");
+
+		Peer* leecher3(m.chunkNumber, 9003, ports, "leecher");
+		peers.pushback(leecher3);
+		leecher3.startLeeching();
+		c.sendStringData("9003");
+
+		for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
+			cout << it << endl;
+		}
+
+		//constantly listen for update list from server to send to peer
+		while(!filesComplete) {
+			//iterate through peers vector
+			//update peer list
+			std::string updatePort = c.receive(4);
+			for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
+                        	cout << it << endl;
+				it.updatePortList(updatePort);
+                	}
+		}
+			
                 //server sends message of number of packages to be sent
                 //recieve listing from server of downloadable files
                 //cout << c.receive(size) << endl;

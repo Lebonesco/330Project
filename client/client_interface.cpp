@@ -249,17 +249,20 @@ string encode(int x, std::string path) {
 }
 
 //encode string
-/*
 bool fileComplete(std::vector<Peer* p> peerList) {
-	int port_it = 9000;
+	bool complete = true;
 
 	//iterate through the peerList
 	//check if files are complete
-	//for ( 
+	for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
+		cout << it << endl;
+		complete = it.fileComplete();		
+	} 
 
-	return true;
+	return complete;
 }
-*/
+
+
 //close connection to server
 void Client::close_connection() {
 	close(sock);
@@ -291,6 +294,7 @@ int main(int argc, char *argv[]) {
 		bencoded_info = c.receive(size);
 		//peer_info = decode(bencoded_info);
 		cout << bencoded_info << endl;
+
 		//server sends message of number of packages to be sent
 		//recieve listing from server of downloadable files
 		cout << c.receive(size) << endl;
