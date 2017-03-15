@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <list>
-#include "chunkQueue.hpp"
+#include "chunkQueue.hpp"	// rarest piece queue
 
 class Peer{
 public:
@@ -11,6 +11,7 @@ public:
 	std::vector<int> bitfield;
 	std::vector<const char*> dataBitfield;
 	std::vector<std::string> portList;
+	ChunkQueue rareQueue (int);
 	const char* selfIP;
 	const char* selfPort;
 	ChunkQueue* queue;
