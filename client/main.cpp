@@ -20,7 +20,8 @@ int main(int argc, char * argv[]) {
         bool connected = false;
         std::string peer_info;
         std::string bencoded_info;
-
+	std::string garbage;
+	
         connected = c.connection(argc, argv);
         if (connected == false) {
                 return -1;
@@ -45,6 +46,9 @@ int main(int argc, char * argv[]) {
 		seeder->selfPort = "9000";
 		ports.push_back(seeder->selfPort);
 		cout << c.sendStringData(encode(seeder->selfPort)) << endl;
+
+		//read in garbage message
+		c.receive(garbage);
 
 		//encode the path
 		message = encode(path);
