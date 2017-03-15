@@ -139,7 +139,7 @@ int main(void)
     int rv,n;
     char buffer[16];
     char file_name[20];
-    char port_number[4];
+    char port_number[100];
     
     char **data_array;
     char **port_array;
@@ -208,8 +208,8 @@ int main(void)
     
     // Port number array
     port_array = (char **)malloc(5 * sizeof(char *));
-    for (int i = 0; i < 4; i++){
-        port_array[i] = (char *)malloc(4 * sizeof(char));
+    for (int i = 0; i < 100; i++){
+        port_array[i] = (char *)malloc(100 * sizeof(char));
     }
     
     // File name array
@@ -220,7 +220,7 @@ int main(void)
     
     puts("Initializing arrays");
     initialize_array(*data_array,1,INET6_ADDRSTRLEN);
-    initialize_array(*port_array,5,4);
+    initialize_array(*port_array,5,100);
     initialize_array(*name_array,1,20);
     
     // Number of clients who want to upload something
@@ -297,18 +297,18 @@ int main(void)
                     printf("Error receiving from client\n");
                 }
                 printf("Port number received: %s\n", port_number);
-                send(new_fd, "Got Port Number",15,0);
-                updatePortList(port_array,uploader_count,port_number);
+                //send(new_fd, "Got Port Number",15,0);
+                //updatePortList(port_array,uploader_count,port_number);
                 
-                if (recv(new_fd, file_name,100,0) < 0){
-                    printf("Error receiving from client\n");
-                }
+                //if (recv(new_fd, file_name,100,0) < 0){
+                //    printf("Error receiving from client\n");
+                //}
                 
                 // Add contents received to their repsective lists
                 
-                updateNameList(name_array,filename_count,file_name);
+                //updateNameList(name_array,filename_count,file_name);
 
-                printf("File name received: %s\n", file_name);
+                //printf("File name received: %s\n", file_name);
                 
             }
             
