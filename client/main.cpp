@@ -32,7 +32,7 @@ int main(int argc, char * argv[]) {
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
 	Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "seeder"); 
-	seeder.startSeeding();
+	seeder.startSeeding(seeder->selfPort);
 
 	char upORdown = 'a';
 	getUserData(upORdown);
@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
 
 		//encode port number
 		seeder->selfPort = "9000";
-		ports.push_back(seeder->selfPort);
+		ports.push_back(seeder->selfIP, seeder->selfPort);
 		//cout << c.sendStringData(encode(seeder->selfPort)) << endl;
 
 		//read in garbage message
@@ -73,17 +73,17 @@ int main(int argc, char * argv[]) {
 		//peer class starts leeching
 		Peer* leecher1(m.chunkNumber, 9001, ports, "leecher");
 		peers.pushback(leecher1);
-		leecher1.startLeeching();
+		leecher1.startLeeching(leecher1->portList);
 		c.sendStringData("9001");
 
 		Peer* leecher2(m.chunkNumber, 9002, ports, "leecher");
 		peers.pushback(leecher2);
-		leecher2.startLeeching();
+		leecher2.startLeeching(leecher2->portList);
 		c.sendStringData("9002");
 
 		Peer* leecher3(m.chunkNumber, 9003, ports, "leecher");
 		peers.pushback(leecher3);
-		leecher3.startLeeching();
+		leecher3.startLeeching(leecher3->portList);
 		c.sendStringData("9003");
 
 		for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
