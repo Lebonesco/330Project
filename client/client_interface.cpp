@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <typeinfo>
 #include <map>
+#include <vector>
 #include "client.hpp"
 using namespace std;
 //using namespace metafile;
@@ -93,7 +94,7 @@ bool Client::connection(int argc, char *argv[]) {
 }
 
 //send data to server
-bool Client::sendStringData(std::string data) {
+bool Client::sendStringData(string data) {
 	if (send(sock, data.c_str(), strlen(data.c_str()), 0) < 0) {
 		cout << "Send has failed" << endl;
 		return false;
@@ -117,7 +118,7 @@ bool Client::sendIntData(int data) {
 */
 
 //receive data from server
-std::string Client::receive(int size) {
+string Client::receive(int size) {
 	char buffer[size];
 	std::string s_reply = "";
 	
@@ -131,9 +132,9 @@ std::string Client::receive(int size) {
 }
 
 //receive string from server
-std::string Client::receive(std::string s) {
+string Client::receive(string s) {
 	char buffer[100];
-	std::string s_reply = s;
+	string s_reply = s;
 	
 	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
 		cout << "Receive has failed" << endl;
@@ -147,8 +148,8 @@ std::string Client::receive(std::string s) {
 
 //get user input on path of file to upload
 //open file and send it to server
-std::string Client::getUploadPath() {
-	std::string path;
+string Client::getUploadPath() {
+	string path;
 
 	cout << "Please enter the path to the file you would like to upload: ";
 	cin >> path;
@@ -173,7 +174,7 @@ std::string Client::getUploadPath() {
 }
 
 /*
-bool Client::checkFileValidity(std::string path) {
+bool Client::checkFileValidity(string path) {
 
 	FILE *upload_file;
 	//unsigned long file_size;
@@ -198,7 +199,7 @@ bool Client::checkFileValidity(std::string path) {
 }
 */
 
-void Client::sendUploadInfo(std::string path){
+void Client::sendUploadInfo(string path){
 
 	FILE *upload_file;
 
@@ -247,78 +248,28 @@ string encode(int x, std::string path) {
 	r.append(path);
 	return r;
 }
-
+/*
 //encode string
-bool fileComplete(std::vector<Peer* p> peerList) {
-	bool complete = true;
+bool filesComplete(vector<Peer> peerList) {
+	bool complete;
 
 	//iterate through the peerList
 	//check if files are complete
-	for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
-		cout << it << endl;
-		complete = it.fileComplete();		
-	} 
+	for (int i = 0; i < peerList.size(); ++i) {
+		if (complete == true) {
+			cout << peerList[i] << endl;
+			complete = peerList[i].fileComplete();		
+		} else {
+			return complete;
+		}
+	}
 
 	return complete;
 }
-
+*/
 
 //close connection to server
 void Client::close_connection() {
 	close(sock);
 }
 
-/*
-int main(int argc, char *argv[]) {
-
-	Client c;
-	
-	int size = 512;
-	std::string message;
-	std::string path;
-	std::string port;
-	std::vector<std::string> ports;
-	std::vector<peer::Peer* p> peers;
-	bool connected = false;	
-	std::string peer_info;
-	std::string bencoded_info;
-
-
-		//send client message that user wants to download
-		message = "download";
-		c.sendStringData(message);
-
-		//display the options of files to be downloaded
-		//get user input on which file they would like to download
-		//c.chooseDownloadFile();
-		bencoded_info = c.receive(size);
-		//peer_info = decode(bencoded_info);
-		cout << bencoded_info << endl;
-
-		//server sends message of number of packages to be sent
-		//recieve listing from server of downloadable files
-		cout << c.receive(size) << endl;
-	
-		//peer class starts leeching
-		Peer* leecher1(m.chunkNumber, 9001, ports, "leecher");
-		peers.pushback(leecher1);
-		Peer* leecher2(m.chunkNumber, 9002, ports, "leecher");
-		peers.pushback(leecher2);
-		Peer* leecher3(m.chunkNumber, 9003, ports, "leecher");
-		peers.pushback(leecher3);
-		for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
-			cout << it << endl;
-		}
-
-		//constantly listen for update list from server to send to peer
-		while(!filesComplete) {
-			//iterate through peers vector
-			//update peer list
-			
-		}
-	}
-	c.close_connection();
-
-	return 0;	
-}
-*/
