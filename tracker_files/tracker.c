@@ -51,7 +51,7 @@ void updateTotalList(char **array, int count , const char *s){
     array = realloc(array, count * sizeof(*array));
 
     // Add address that just connected to the list
-    array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
+    array[count-1] = malloc(46 * sizeof(char));
     strcpy(array[count-1], s);
 }
 
@@ -196,8 +196,8 @@ int main(void)
     
     // Data array for clients that connect to server
     data_array = (char **)malloc(1 * sizeof(char *));
-    for (int i = 0; i < INET6_ADDRSTRLEN; i++){
-        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
+    for (int i = 0; i < 46; i++){
+        data_array[i] = (char *)malloc(46 * sizeof(char));
     }
     
     // Port number array
