@@ -60,35 +60,6 @@ int main(int argc, char * argv[]) {
 		c.sendStringData(message);
 
 		//display the options of files to be downloaded
-/*
-        char upORdown = 'a';
-        getUserData(upORdown);
-        if (upORdown == 'u') {
-                //send server message that user wants to upload
-                message = "upload";
-                c.sendStringData(message);
-
-
-                //read in the path to the file the user would like to upload
-                path = c.getUploadPath();
-
-                //encode port number
-                port = encode(4);
-                cout << c.sendStringData(port) << endl;
-                //port = encode(p.port);
-                //c.sendStringData(port);
-
-                //encode the path
-                message = encode(path);
-                c.sendStringData(message);
-
-        } else {
-                //send client message that user wants to download
-                message = "download";
-                c.sendStringData(message);
-
-                //display the options of files to be downloaded
-*/
                 //get user input on which file they would like to download
                 //c.chooseDownloadFile();
                 bencoded_info = c.receive(size);
