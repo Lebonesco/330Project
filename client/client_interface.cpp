@@ -126,6 +126,7 @@ std::string Client::receive(int size) {
 	}
 
 	s_reply = buffer;
+	cout << "Server sent: " << s_reply << endl;
 	return s_reply;
 }
 
@@ -137,6 +138,8 @@ std::string Client::receive(std::string s) {
 	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
 		cout << "Receive has failed" << endl;
 	}
+
+	cout << "Server sent: " << s_reply << endl;
 
 	return s_reply;
 }
@@ -235,6 +238,17 @@ string encode(string x) {
 	r.append(x);
 	return r;
 }
+
+//encode integer
+string encode(int x, std::string path) {
+	string r;
+	r.append(to_string(x));
+	r.append(":");
+	r.append(path);
+	return r;
+}
+
+//encode string
 /*
 bool fileComplete(std::vector<Peer* p> peerList) {
 	int port_it = 9000;
