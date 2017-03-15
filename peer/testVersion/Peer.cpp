@@ -10,8 +10,8 @@
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
 #include "Peer.hpp"
-//#include "metafile.hpp"
 #include "chunkQueue.hpp"
+//#include "metafile.hpp"
 
 using namespace std;
 
@@ -21,13 +21,17 @@ using namespace std;
 Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, string type){
 	numPieces = numChunks;
 	portList = recvPortList;
-	ChunkQueue tempQ (numChunks);
-	rareQueue = tempQ;
+	queue = new ChunkQueue(numChunks);
 	createBitfield(numChunks, type);
 	selfPort = port.c_str();
 	string iP = "127.0.0.1";
 	selfIP = iP.c_str();
-	queue = new ChunkQueue(numChunks); // remember that this is a pointer
+
+	if(type == "Leech"){
+		vector<const char*> dataBF (numChunks);
+		dataBitfield = dataBF;
+	}
+
 }
 
 int Peer::createSocket(string peerType){
@@ -254,27 +258,31 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		for(int j = 0; j < recBF.size(); j++){
 			cout << recBF[j] << " ";
 		}
-		cout << endl; 
-		rareQueue->updateQueue(bitfield, recBitfield);
+		cout << endl;
+		queue->updateQueue(bitfield, recBitfield);
 	}
 
-	if(data.find("type:REQUEST") != string::npos){
+	if(data.find("type:REQPIECE") != string::npos){
 		// .... needs to send appropriate piece
 		cout << "RECIEVED: Piece Request." << endl;
 
-		string pieceToSend = "type:PIECE|A placeholder piece";
+		string pieceToSend = "type:PIECE|index:1A placeholder piece";
 		bytesSent = send(socketDescriptor, pieceToSend.c_str(), pieceToSend.length(), 0);		// need .c_str() to convert from standard string to c string
+		cout << "SENT: " << bytesSent << " bytes. Message: " << pieceToSend << endl;
 	}
 
 	if(data.find("type:PIECE") != string::npos){
 		// Write 
 		cout << "RECIEVED: Data Piece." << endl;
 
-		char sIndex = data.at(data.find("index:"));
-		int index = (int)sIndex;
+		//char sIndex = data.at(data.find("index:"));
+		char sIndex = data[17];
+		cout << "index: " << sIndex << endl;
+		int index = (int)sIndex - 48;
+		cout << "RECIEVED PIECE. Index: " << index << endl;
 
 		string dataToWrite = data.substr(data.find("type:PIECE"));
-		dataBitfield[index] = dataToWrite.c_str();
+//		dataBitfield[index] = dataToWrite.c_str();
 	}
 
 	if(data.find("type:UPDATE") != string::npos){
@@ -372,9 +380,9 @@ int Peer::startLeeching(vector<string>& currentPortList){
 							while(recievedBytes > 0){
 								// decode message before passing to readRecvMSG
 								memset(readBuffer, 0, 100);			//initialize buffer to 0's
-								cout << "Waiting for response." << endl;
+								cout << "(Client): Waiting for response." << endl;
 								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
-								cout << "Response received." << endl;
+								cout << "(Client): Response received." << endl;
 								cout << "Bytes Received: " << recievedBytes << endl;
 								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
 								string data = string(writeBuffer.begin(), writeBuffer.end());
@@ -397,7 +405,28 @@ int Peer::startLeeching(vector<string>& currentPortList){
 			if(seederList.size() > 0){
 				// need to update list and remove any seeders that no longer have useful data
 				// ***still need a function to do this so placeholder for now***
-				getPeerData(seederList);
+				cout << "(Client): Getting data from connected Peers." << endl;
+				for(int i = 0; i < seederList.size() i++){
+					string pRMsg = createPieceRequest(1);
+					cout << "(Client): Sending Message -> " << pRMsg << endl;
+					send(seederList[i], pRMsg.c_str(), pRMsg.length(), 0);
+					recievedBytes = recv(seederList[i], readBuffer, sizeof(readBuffer), MSG_PEEK);
+					while(recievedBytes > 0){
+						recievedBytes = recv(seederList[i], readBuffer, sizeof(readBuffer), 0);
+						cout << "(Client): Response received." << endl;
+						cout << "Bytes Received: " << recievedBytes << endl;
+						writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+						string data = string(writeBuffer.begin(), writeBuffer.end());
+						cout << "Message Recieved: " << data << endl;
+						if(recievedBytes < 100){
+							break;
+						}
+					}
+					string data = string(writeBuffer.begin(), writeBuffer.end());
+					writeBuffer.clear();
+					cout << "Message from Server: " << data << endl;
+					readRecvMSG(data, seederList[i]);
+				}
 			}
 		}
 		//SEND FILE COMPLETE MESSAGE
@@ -419,11 +448,14 @@ void Peer::updatePortList(vector<string> updatedPortList){
 // Update list of which peers still have interesting data, remove those that don't
 // **IN PROGRESS**
 void Peer::getPeerData(vector<int> seederList){
+	/*
 	for(int i = 0; i < seederList.size(); i++){
 		vector<int> availableBitfield;
 		string bFReqMsg = createBitfieldReqMsg();
 		send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
+
 	}
+	*/
 }
 
 bool Peer::fileComplete(){
@@ -491,4 +523,3 @@ int main(){
 
 	return 0;
 }
-

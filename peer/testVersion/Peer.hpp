@@ -11,7 +11,6 @@ public:
 	std::vector<int> bitfield;
 	std::vector<const char*> dataBitfield;
 	std::vector<std::string> portList;
-	ChunkQueue rareQueue (int);
 	const char* selfIP;
 	const char* selfPort;
 	ChunkQueue* queue;
@@ -30,7 +29,7 @@ public:
 	void updatePortList(std::vector<std::string> port);
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
-	void createBitfield(int numChunks, std::string type, std::string data = "");
+	void createBitfield(int numChunks, std::string type);
 	void setFileData(std::vector<const char*> data);
 
 	//Message & Piece Functions									
