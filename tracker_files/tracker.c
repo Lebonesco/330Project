@@ -45,38 +45,37 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-// Add client to total peer list
-void updateTotalList(char **array, int count , const char *s){
-    // Reallocate array for new addresses that connected
-    array = realloc(array, count * sizeof(*array));
-
-    // Add address that just connected to the list
-    array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
-    strcpy(array[count-1], s);
+// Add element to the list entered
+void updateList(char **array, int count, const char *s){
+    strcpy(array[count-1],s);
 }
 
-// Add port number to port list
-void updatePortList(char **array, int count , const char *s){
-    // Reallocate array for new port num
-    array = realloc(array, count * sizeof(*array));
+// Extracts port number from the uploader and adds it to its respective list
+void extract_port(const char *string, int index, char **array){
+    char *p_num;
+    strncpy(p_num,string,4);
+    updateList(array,index,p_num);
+}
+
+// Extracts file name from the uploader and adds it to its respective list
+void extract_name(const char *string, int index, char **array){
+    char *f_name;
+    strncpy(f_name,string+4,20);
+    updateList(array,index,f_name);
     
-    // Add port num to list
-    array[count-1] = malloc(4 * sizeof(char));
-    strcpy(array[count-1], s);
 }
 
-// Add file name to file name list
-void updateNameList(char **array, int count , const char *s){
-    // Reallocate array for new file name
-    array = realloc(array, count * sizeof(*array));
+// Encodes contents of list into one long string
+char* encode_list(char **array, int index){
+    char *val = (char*)malloc(4*index*sizeof(char));
+    for (int i = 0; i < index; i++){
+        strcat(val,array[i]);
+    }
     
-    // Add file name to list
-    array[count-1] = malloc(20 * sizeof(char));
-    strcpy(array[count-1], s);
+    return val;
 }
 
-
-// Free memory used in 2 dimensional array
+//Free memory used in 2 dimensional array
 void freeArray(char*** array, int index){
     for (int i = 0; i < index; i++){
         free((*array)[i]);
@@ -134,6 +133,7 @@ int main(void)
     char buffer[16];
     char file_name[20];
     char port_number[4];
+    char input[20];
     
     char **data_array;
     char **port_array;
@@ -195,13 +195,14 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
+    puts("creating lists...");
     data_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
         data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
     
     // Port number array
-    port_array = (char **)malloc(1 * sizeof(char *));
+    port_array = (char **)malloc(5 * sizeof(char *));
     for (int i = 0; i < 4; i++){
         port_array[i] = (char *)malloc(4 * sizeof(char));
     }
@@ -211,6 +212,7 @@ int main(void)
     for (int i = 0; i < 20; i++){
         name_array[i] = (char *)malloc(20 * sizeof(char));
     }
+    puts("lists successfully created");
     
     // Number of clients who want to upload something
     int uploader_count = 0;
@@ -239,7 +241,7 @@ int main(void)
         printf("Number of peers: %d\n", count);
         
         // Update peer list with new client that just connected
-        updateTotalList(data_array,count,s);
+        updateList(data_array,count,s);
         
         // TESTING: Print out contents in list
         puts("Contents in total list:");
@@ -274,7 +276,8 @@ int main(void)
             if (strncmp(buffer,"download",8)==0){
                 // Send fake message to client
                 puts("requested download");
-                send(new_fd, "Bencoded message", 16, 0);
+                char *encoded = encode_list(port_array,uploader_count);
+                send(new_fd, encoded, sizeof(encoded), 0);
             }
             
             else if (strncmp(buffer,"upload",6)==0){
@@ -282,29 +285,23 @@ int main(void)
                 filename_count++;
                 uploader_count++;
             
-                if (recv(new_fd, port_number,4,0) < 0){
+                if (recv(new_fd, input,sizeof(input),0) < 0){
                     printf("Error receiving from client\n");
                 }
-                if (recv(new_fd, file_name,20,0) < 0){
-                    printf("Error receiving from client\n");
-                }
-                
-                // Add contents received to their repsective lists
-                updatePortList(port_array,uploader_count,port_number);
-                updateNameList(name_array,filename_count,file_name);
-                printf("Port number received: %s\n", port_number);
-                printf("File name received: %s\n", file_name);
+                extract_port(input,uploader_count,port_array);
+                extract_name(input,filename_count,name_array);
+                printf("Port number received: %s\n", input);
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
                 puts("requested update");
                 uploader_count++;
-                if (recv(new_fd, port_number,4,0) < 0){
+                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
                     printf("Error receiving from client\n");
                 }
-                updatePortList(port_array,uploader_count,port_number);
-                //TODO: Send back updated list
+                updateList(port_array,uploader_count,port_number);
+                send(new_fd,port_number,sizeof(port_number),0);
             }
             else {
                 // Client sent an invalid message
@@ -316,12 +313,13 @@ int main(void)
             close(new_fd);
             exit(0);
         }
-        freeArray(&data_array, count+1);
-        freeArray(&name_array, filename_count+1);
-        freeArray(&port_array, uploader_count+1);
         
         close(new_fd);  // parent doesn't need this
     }
+    
+    freeArray(&data_array,INET6_ADDRSTRLEN);
+    freeArray(&port_array,4);
+    freeArray(&name_array, 20);
     
     return 0;
 }

@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <list>
-#include "chunkQueue.hpp"	// rarest piece queue
 
 class Peer{
 public:
@@ -13,7 +12,6 @@ public:
 	std::vector<std::string> portList;
 	const char* selfIP;
 	const char* selfPort;
-	ChunkQueue* queue;
 //public:
 	Peer(const int numChunks, std::string port, std::vector<std::string>& ipPortList, std::string type);
 
@@ -26,17 +24,16 @@ public:
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::vector<std::string>& portList);
-	void updatePortList(std::string port);
+	void updatePortList(std::vector<std::string> port);
 	void getPeerData(std::vector<int> seederList);
 	bool fileComplete();
-	void createBitfield(int numChunks, std::string type);
+	void createBitfield(int numChunks, std::string type, std::string data = "");
 	void setFileData(std::vector<const char*> data);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
 	std::string createBitfieldReqMsg();
 	std::string createPieceRequest(int index);
-	std::string createCompleteMsg();
 
 };
 

@@ -126,8 +126,24 @@ std::string Client::receive(int size) {
 	}
 
 	s_reply = buffer;
+	cout << "Server sent: " << s_reply << endl;
 	return s_reply;
 }
+
+//receive string from server
+std::string Client::receive(std::string s) {
+	char buffer[100];
+	std::string s_reply = s;
+	
+	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
+		cout << "Receive has failed" << endl;
+	}
+
+	cout << "Server sent: " << s_reply << endl;
+
+	return s_reply;
+}
+
 
 //get user input on path of file to upload
 //open file and send it to server
@@ -222,17 +238,31 @@ string encode(string x) {
 	r.append(x);
 	return r;
 }
-/*
+
+//encode integer
+string encode(int x, std::string path) {
+	string r;
+	r.append(to_string(x));
+	r.append(":");
+	r.append(path);
+	return r;
+}
+
+//encode string
 bool fileComplete(std::vector<Peer* p> peerList) {
-	int port_it = 9000;
+	bool complete = true;
 
 	//iterate through the peerList
 	//check if files are complete
-	//for ( 
+	for (std::vector<Peer* p>::iterator it = peers.begin(); it != peers.end(); ++it) {
+		cout << it << endl;
+		complete = it.fileComplete();		
+	} 
 
-	return true;
+	return complete;
 }
-*/
+
+
 //close connection to server
 void Client::close_connection() {
 	close(sock);
@@ -253,35 +283,7 @@ int main(int argc, char *argv[]) {
 	std::string peer_info;
 	std::string bencoded_info;
 
-	connected = c.connection(argc, argv);
-	if (connected == false) {
-		return -1;
-	}		
 
-	metafile::Metafile m = new Metafile(path);
-	// this instance needs to happen for upload and download
-	// assume this is going to be seeder
-	Peer* seeder(m.chunkNumber, 9000, ports, "seeder"); 
-
-	char upORdown = 'a';
-	getUserData(upORdown);
-	if (upORdown == 'u') {
-		//send server message that user wants to upload
-		message = "upload";
-		c.sendStringData(message);
-
-		//read in the path to the file the user would like to upload		
-		path = c.getUploadPath();
-
-		//encode port number
-		ports = encode(seeder->port);
-		cout << c.sendStringData(ports) << endl;
-
-		//encode the path
-		message = encode(path);
-		c.sendStringData(message);
-
-	} else {
 		//send client message that user wants to download
 		message = "download";
 		c.sendStringData(message);
@@ -292,6 +294,7 @@ int main(int argc, char *argv[]) {
 		bencoded_info = c.receive(size);
 		//peer_info = decode(bencoded_info);
 		cout << bencoded_info << endl;
+
 		//server sends message of number of packages to be sent
 		//recieve listing from server of downloadable files
 		cout << c.receive(size) << endl;
