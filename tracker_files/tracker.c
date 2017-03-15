@@ -48,35 +48,41 @@ void *get_in_addr(struct sockaddr *sa)
 // Add client to total peer list
 void updateTotalList(char **array, int count , const char *s){
     // Reallocate array for new addresses that connected
-    array = realloc(array, count * sizeof(*array));
+    //array = realloc(array, count * sizeof(*array));
 
     // Add address that just connected to the list
-    array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
-    strcpy(array[count-1], s);
+    //array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
+    strcpy(array[count-1],s);
 }
 
 // Add port number to port list
 void updatePortList(char **array, int count , const char *s){
     // Reallocate array for new port num
-    array = realloc(array, count * sizeof(*array));
+    //array = realloc(array, count * sizeof(*array));
     
     // Add port num to list
-    array[count-1] = malloc(4 * sizeof(char));
-    strcpy(array[count-1], s);
+    //array[count-1] = malloc(4 * sizeof(char));
+    strcpy(array[count-1],s);
 }
 
 // Add file name to file name list
 void updateNameList(char **array, int count , const char *s){
     // Reallocate array for new file name
-    array = realloc(array, count * sizeof(*array));
+    //array = realloc(array, count * sizeof(*array));
     
     // Add file name to list
-    array[count-1] = malloc(20 * sizeof(char));
-    strcpy(array[count-1], s);
+    //array[count-1] = malloc(20 * sizeof(char));
+    strcpy(array[count-1],s);
 }
 
 
-// Free memory used in 2 dimensional array
+void initialize_array(char *array, int x, int y){
+    for (int i = 0; i < x;i++){
+        strcpy(&array[i]," ");
+    }
+}
+
+//Free memory used in 2 dimensional array
 void freeArray(char*** array, int index){
     for (int i = 0; i < index; i++){
         free((*array)[i]);
@@ -201,7 +207,7 @@ int main(void)
     }
     
     // Port number array
-    port_array = (char **)malloc(1 * sizeof(char *));
+    port_array = (char **)malloc(5 * sizeof(char *));
     for (int i = 0; i < 4; i++){
         port_array[i] = (char *)malloc(4 * sizeof(char));
     }
@@ -211,6 +217,11 @@ int main(void)
     for (int i = 0; i < 20; i++){
         name_array[i] = (char *)malloc(20 * sizeof(char));
     }
+    
+    puts("Initializing arrays");
+    initialize_array(*data_array,1,INET6_ADDRSTRLEN);
+    initialize_array(*port_array,5,4);
+    initialize_array(*name_array,1,20);
     
     // Number of clients who want to upload something
     int uploader_count = 0;
@@ -282,17 +293,21 @@ int main(void)
                 filename_count++;
                 uploader_count++;
             
-                if (recv(new_fd, port_number,4,0) < 0){
+                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
                     printf("Error receiving from client\n");
                 }
-                if (recv(new_fd, file_name,20,0) < 0){
+                printf("Port number received: %s\n", port_number);
+                send(new_fd, "Got Port Number",15,0);
+                updatePortList(port_array,uploader_count,port_number);
+                
+                if (recv(new_fd, file_name,sizeof(file_name),0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
                 // Add contents received to their repsective lists
-                updatePortList(port_array,uploader_count,port_number);
+                
                 updateNameList(name_array,filename_count,file_name);
-                printf("Port number received: %s\n", port_number);
+
                 printf("File name received: %s\n", file_name);
                 
             }
@@ -316,12 +331,13 @@ int main(void)
             close(new_fd);
             exit(0);
         }
-        freeArray(&data_array, count+1);
-        freeArray(&name_array, filename_count+1);
-        freeArray(&port_array, uploader_count+1);
         
         close(new_fd);  // parent doesn't need this
     }
+    
+    freeArray(&data_array,count+1);
+    freeArray(&port_array,uploader_count+1);
+    freeArray(&name_array, filename_count+1);
     
     return 0;
 }

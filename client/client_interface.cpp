@@ -129,6 +129,19 @@ std::string Client::receive(int size) {
 	return s_reply;
 }
 
+//receive string from server
+std::string Client::receive(std::string s) {
+	char buffer[100];
+	std::string s_reply = s;
+	
+	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
+		cout << "Receive has failed" << endl;
+	}
+
+	return s_reply;
+}
+
+
 //get user input on path of file to upload
 //open file and send it to server
 std::string Client::getUploadPath() {
@@ -253,35 +266,7 @@ int main(int argc, char *argv[]) {
 	std::string peer_info;
 	std::string bencoded_info;
 
-	connected = c.connection(argc, argv);
-	if (connected == false) {
-		return -1;
-	}		
 
-	metafile::Metafile m = new Metafile(path);
-	// this instance needs to happen for upload and download
-	// assume this is going to be seeder
-	Peer* seeder(m.chunkNumber, 9000, ports, "seeder"); 
-
-	char upORdown = 'a';
-	getUserData(upORdown);
-	if (upORdown == 'u') {
-		//send server message that user wants to upload
-		message = "upload";
-		c.sendStringData(message);
-
-		//read in the path to the file the user would like to upload		
-		path = c.getUploadPath();
-
-		//encode port number
-		ports = encode(seeder->port);
-		cout << c.sendStringData(ports) << endl;
-
-		//encode the path
-		message = encode(path);
-		c.sendStringData(message);
-
-	} else {
 		//send client message that user wants to download
 		message = "download";
 		c.sendStringData(message);
