@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include "chunkQueue.hpp"
 
 class Peer{
 public:
@@ -12,6 +13,7 @@ public:
 	std::vector<std::string> portList;
 	const char* selfIP;
 	const char* selfPort;
+	ChunkQueue* queue;
 //public:
 	Peer(const int numChunks, std::string port, std::vector<std::string>& ipPortList, std::string type);
 

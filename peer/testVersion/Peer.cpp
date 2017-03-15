@@ -11,6 +11,7 @@
 #include <fcntl.h>			// for fcntl()
 #include "Peer.hpp"
 //#include "metafile.hpp"
+#include "chunkQueue.hpp"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, strin
 	selfPort = port.c_str();
 	string iP = "127.0.0.1";
 	selfIP = iP.c_str();
-
+	queue = new ChunkQueue(numChunks); // remember that this is a pointer
 }
 
 int Peer::createSocket(string peerType){
@@ -457,7 +458,7 @@ void Peer::setFileData(vector<const char*> data){
 string Peer::createBitfieldReqMsg(){
 	return "type:REQBITFIELD";
 }
-/*
+
 string Peer::createPieceRequest(int index){
 
 }
@@ -485,4 +486,4 @@ int main(){
 
 	return 0;
 }
-*/
+
