@@ -283,10 +283,10 @@ int main(void)
                 filename_count++;
                 uploader_count++;
             
-                if (recv(new_fd, port_number,4,0) < 0){
+                if (recv(new_fd, port_number,100,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                if (recv(new_fd, file_name,20,0) < 0){
+                if (recv(new_fd, file_name,100,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
