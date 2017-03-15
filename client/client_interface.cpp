@@ -126,6 +126,7 @@ std::string Client::receive(int size) {
 	}
 
 	s_reply = buffer;
+	cout << "Server sent: " << s_reply << endl;
 	return s_reply;
 }
 
@@ -137,6 +138,8 @@ std::string Client::receive(std::string s) {
 	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
 		cout << "Receive has failed" << endl;
 	}
+
+	cout << "Server sent: " << s_reply << endl;
 
 	return s_reply;
 }
