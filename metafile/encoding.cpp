@@ -52,21 +52,16 @@ string encode(vector<T> x) {
 	return r;
 }
 
-void decode(string data, vector<string> *vec) {
-	int i = 2; j = 2, count = 1;
+vector<string> decode(string data) {
+	int i = 3, j = 2;
+	string item;
+	vector<string> result;
 	while(i < data.size()) {
-		if(data[j] == 'e') {
-			count--;
-			vec.append_back(data[i:j]);
-			i = j;
-		} elif(data[j] == 'i'|| data[j] == 's') {
-			count++;
-		}
-
-		if(count == 0) {
-			break;
-		}
+		item = data.substr(i, 4);
+		result.push_back(item);
+		i += 6;
 	}
+	return result;
 }
 
 int main(){
@@ -79,15 +74,20 @@ int main(){
 	r = encode(test);
 	cout << r << endl;
 
-	vector<int> peerList = {1234,4312,1234,1341,5341};
-	int chunkNum = 10;
+	vector<string> peerList = {"1234","4312","1234","1341","5341"};
+	vector<string> vec;
 	string t;
-	t = encode(chunkNum);
-	t.append(encode(peerList));
+	t = encode(peerList);
 	cout << t << endl;
-	cout << "end" << endl;
-
-
+	vec = decode(t);
+		
+	vector<string>::iterator it = vec.begin();
+	cout << "[" << flush;
+	for(it = vec.begin(); it != vec.end(); ++it) {
+		cout << (*it) << flush;
+		cout << "," << flush;
+	}
+	cout << "]" << endl;
 
 	return 0;
 }
