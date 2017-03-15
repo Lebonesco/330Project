@@ -293,14 +293,14 @@ int main(void)
                 filename_count++;
                 uploader_count++;
             
-                if (recv(new_fd, port_number,100,0) < 0){
+                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
                     printf("Error receiving from client\n");
                 }
                 printf("Port number received: %s\n", port_number);
                 send(new_fd, "Got Port Number",15,0);
                 updatePortList(port_array,uploader_count,port_number);
                 
-                if (recv(new_fd, file_name,100,0) < 0){
+                if (recv(new_fd, file_name,sizeof(file_name),0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
