@@ -4,8 +4,8 @@
 #include <string>
 #include <iostream>
 #include "client_interface.cpp"
-#include "../peer/testVersion/Peer.cpp"
-#include "../metafile/Metafile.cpp"
+#include "Peer.cpp"
+#include "metafile.cpp"
 
 using namespace std;
 //using namespace metafile;
