@@ -45,13 +45,14 @@ int main(int argc, char * argv[]) {
 		//encode port number
 		seeder->selfPort = "9000";
 		ports.push_back(seeder->selfPort);
-		cout << c.sendStringData(encode(seeder->selfPort)) << endl;
+		//cout << c.sendStringData(encode(seeder->selfPort)) << endl;
 
 		//read in garbage message
-		c.receive(garbage);
+		//c.receive(&garbage);
 
 		//encode the path
-		message = encode(path);
+		//message = encode(path);
+		message = encode(9000, path);
 		c.sendStringData(message);
 
 	} else {

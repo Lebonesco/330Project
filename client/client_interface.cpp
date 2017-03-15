@@ -238,6 +238,17 @@ string encode(string x) {
 	r.append(x);
 	return r;
 }
+
+//encode integer
+string encode(int x, std::string path) {
+	string r;
+	r.append(to_string(x));
+	r.append(":");
+	r.append(path);
+	return r;
+}
+
+//encode string
 /*
 bool fileComplete(std::vector<Peer* p> peerList) {
 	int port_it = 9000;
