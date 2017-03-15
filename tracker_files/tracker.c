@@ -76,11 +76,9 @@ void updateNameList(char **array, int count , const char *s){
 }
 
 
-void initialize_array(char **array, int x, int y){
+void initialize_array(char *array, int x, int y){
     for (int i = 0; i < x;i++){
-        for (int j = 0; j < y; j++){
-            array[i][j] = ' ';
-        }
+        strcpy(&array[i]," ");
     }
 }
 
@@ -220,9 +218,10 @@ int main(void)
         name_array[i] = (char *)malloc(20 * sizeof(char));
     }
     
-    initialize_array(data_array,1,INET6_ADDRSTRLEN);
-    initialize_array(port_array,5,4);
-    initialize_array(name_array,1,20);
+    puts("Initializing arrays");
+    initialize_array(*data_array,1,INET6_ADDRSTRLEN);
+    initialize_array(*port_array,5,4);
+    initialize_array(*name_array,1,20);
     
     // Number of clients who want to upload something
     int uploader_count = 0;
