@@ -1,5 +1,5 @@
-SOURCES = Peer.cpp
-HEADERS = Peer.hpp
+SOURCES = Peer.cpp chunkQueue.cpp
+HEADERS = Peer.hpp chunkQueue.hpp
 OBJECTS = $(SOURCES:.cpp=.o)
 LIBS = -lm
 

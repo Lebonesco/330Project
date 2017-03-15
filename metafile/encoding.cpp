@@ -38,7 +38,6 @@ string encode(map<T, K> x) {
 	return r;
 }
 
-void decode(string data, vector<
 
 template <typename T>
 string encode(vector<T> x) {
@@ -53,6 +52,23 @@ string encode(vector<T> x) {
 	return r;
 }
 
+void decode(string data, vector<string> *vec) {
+	int i = 2; j = 2, count = 1;
+	while(i < data.size()) {
+		if(data[j] == 'e') {
+			count--;
+			vec.append_back(data[i:j]);
+			i = j;
+		} elif(data[j] == 'i'|| data[j] == 's') {
+			count++;
+		}
+
+		if(count == 0) {
+			break;
+		}
+	}
+}
+
 int main(){
 	string r;	
 	int tmp = 5;
@@ -62,6 +78,16 @@ int main(){
 	cout << r << endl;
 	r = encode(test);
 	cout << r << endl;
+
+	vector<int> peerList = {1234,4312,1234,1341,5341};
+	int chunkNum = 10;
+	string t;
+	t = encode(chunkNum);
+	t.append(encode(peerList));
+	cout << t << endl;
+	cout << "end" << endl;
+
+
 
 	return 0;
 }
