@@ -118,7 +118,7 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
-	int port = selfPort;
+	const char* port = selfPort;
 
 	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
 
@@ -457,7 +457,7 @@ void Peer::setFileData(vector<const char*> data){
 string Peer::createBitfieldReqMsg(){
 	return "type:REQBITFIELD";
 }
-
+/*
 string Peer::createPieceRequest(int index){
 
 }
@@ -485,3 +485,4 @@ int main(){
 
 	return 0;
 }
+*/
