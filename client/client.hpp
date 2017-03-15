@@ -18,6 +18,7 @@ public:
 	bool sendStringData(std::string data);
 	bool sendIntData(int data);
 	std::string receive(int size); 
+	std::string receive(std::string s); 
 	std::string getUploadPath();
 	int chooseDownloadFile();
 	bool checkFileValidity(std::string path);
