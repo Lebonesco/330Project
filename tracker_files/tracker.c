@@ -65,6 +65,15 @@ void extract_name(const char *string, int index, char **array){
     
 }
 
+// Encodes contents of list into one long string
+char* encode_list(char **array, int index){
+    char *val = (char*)malloc(4*index*sizeof(char));
+    for (int i = 0; i < index; i++){
+        strcat(val,array[i]);
+    }
+    
+    return val;
+}
 
 //Free memory used in 2 dimensional array
 void freeArray(char*** array, int index){
@@ -186,25 +195,24 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
-    puts("creating data array");
+    puts("creating lists...");
     data_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
         data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
     
     // Port number array
-    puts("creating port array");
     port_array = (char **)malloc(5 * sizeof(char *));
     for (int i = 0; i < 4; i++){
         port_array[i] = (char *)malloc(4 * sizeof(char));
     }
     
     // File name array
-    puts("creating name array");
     name_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < 20; i++){
         name_array[i] = (char *)malloc(20 * sizeof(char));
     }
+    puts("lists successfully created");
     
     // Number of clients who want to upload something
     int uploader_count = 0;
@@ -268,7 +276,8 @@ int main(void)
             if (strncmp(buffer,"download",8)==0){
                 // Send fake message to client
                 puts("requested download");
-                send(new_fd, "Bencoded message", 16, 0);
+                char *encoded = encode_list(port_array,uploader_count);
+                send(new_fd, encoded, sizeof(encoded), 0);
             }
             
             else if (strncmp(buffer,"upload",6)==0){
@@ -292,7 +301,7 @@ int main(void)
                     printf("Error receiving from client\n");
                 }
                 updateList(port_array,uploader_count,port_number);
-                //TODO: Send back updated list
+                send(new_fd,port_number,sizeof(port_number),0);
             }
             else {
                 // Client sent an invalid message
