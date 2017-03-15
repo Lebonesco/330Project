@@ -77,11 +77,12 @@ void updateNameList(char **array, int count , const char *s){
 
 
 // Free memory used in 2 dimensional array
-void freeArray(char** array, int index){
+void freeArray(char*** array, int index){
     for (int i = 0; i < index; i++){
-        free(array[i]);
+        free((*array)[i]);
     }
-    free(array);
+    free(*array);
+    *array = NULL;
 }
 
 // Deallocate memory for one dimensional array
@@ -133,6 +134,10 @@ int main(void)
     char buffer[16];
     char file_name[20];
     char port_number[4];
+    
+    char **data_array;
+    char **port_array;
+    char **name_array;
     
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -190,21 +195,21 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
-    char **data_array = malloc(1 * sizeof(*data_array));
+    data_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
-        data_array[i] = malloc(INET6_ADDRSTRLEN * sizeof(char));
+        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
     
     // Port number array
-    char **port_array = malloc(1 * sizeof(*port_array));
+    port_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < 4; i++){
-        port_array[i] = malloc(4 * sizeof(char));
+        port_array[i] = (char *)malloc(4 * sizeof(char));
     }
     
     // File name array
-    char **name_array = malloc(1 * sizeof(*name_array));
+    name_array = (char **)malloc(1 * sizeof(char *));
     for (int i = 0; i < 20; i++){
-        name_array[i] = malloc(20 * sizeof(char));
+        name_array[i] = (char *)malloc(20 * sizeof(char));
     }
     
     // Number of clients who want to upload something
@@ -311,10 +316,9 @@ int main(void)
             close(new_fd);
             exit(0);
         }
-        
-        freeArray(data_array, count);
-        freeArray(name_array, filename_count);
-        freeArray(port_array, uploader_count);
+        freeArray(&data_array, count+1);
+        freeArray(&name_array, filename_count+1);
+        freeArray(&port_array, uploader_count+1);
         
         close(new_fd);  // parent doesn't need this
     }
