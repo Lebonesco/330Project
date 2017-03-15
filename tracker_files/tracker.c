@@ -300,7 +300,7 @@ int main(void)
                 send(new_fd, "Got Port Number",15,0);
                 updatePortList(port_array,uploader_count,port_number);
                 
-                if (recv(new_fd, file_name,sizeof(file_name),0) < 0){
+                if (recv(new_fd, file_name,100,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 
