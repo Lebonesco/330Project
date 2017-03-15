@@ -8,11 +8,11 @@
 #ifndef tracker_h
 #define tracker_h
 
-void updateTotalList(char **array, int count, const char *s);
+void updateList(char **array, int count, const char *s);
 
-void updatePortList(char **array, int count, const char *s);
+void extract_port(const char *string, int index, char **array);
 
-void updateNameList(char **array, int count, const char *s);
+void extract_name(const char *string, int index, char **array);
 
 void freeArray(char*** array, int index);
 
