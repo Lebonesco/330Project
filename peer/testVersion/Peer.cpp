@@ -164,13 +164,6 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 								if(newClientSocket > maxConnectedFD){
 									// set new max FD
 									maxConnectedFD = newClientSocket;
-									
-									// send bitfield to client
-									// AS OF NOW this may as well be a place holder since bitfield
-									// currently has no functionality!
-
-//									send(newClientSocket, &bitfield, bitfield.size(), 0);
-//									cout << "(Server): Sending message to Client." << endl;
 								}
 							}
 
@@ -264,7 +257,10 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 	if(data.find("type:REQPIECE") != string::npos){
 		// .... needs to send appropriate piece
+		const char* dataToSend;
+		int index = (int)data[13] - 48;
 		cout << "RECIEVED: Piece Request." << endl;
+		dataToSend = dataBitfield[index];
 
 		string pieceToSend = "type:PIECE|index:1A placeholder piece";
 		bytesSent = send(socketDescriptor, pieceToSend.c_str(), pieceToSend.length(), 0);		// need .c_str() to convert from standard string to c string
@@ -281,12 +277,12 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		int index = (int)sIndex - 48;
 		cout << "RECIEVED PIECE. Index: " << index << endl;
 
-		string dataToWrite = data.substr(data.find("type:PIECE"));
+		string dataToWrite = data.substr(data.find("type:PIECE|index:") + 1);
 //		dataBitfield[index] = dataToWrite.c_str();
 	}
 
-	if(data.find("type:UPDATE") != string::npos){
-
+	if(data.find("FILE TRANSFER TO PEER COMPLETE") != string::npos){
+		::close(socketDescriptor);
 	}
 
 }
@@ -323,12 +319,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 }
 
 
-/* TODO:
-		1. Handle forking so peer can act as a seeder while leeching
-			- basic attempt implemented (untested)
-		2. Set 'myIP' 'myPort' vars before calling startSeeding()
-		3. Send a file complete message to seeder so it removes FD from leecher set
-*/
+
 int Peer::startLeeching(vector<string>& currentPortList){
 	// start leeching
 	vector<char> writeBuffer;
@@ -344,8 +335,6 @@ int Peer::startLeeching(vector<string>& currentPortList){
 	char readBuffer[100];		// or whatever size we need it to be	
 	fd_set peerFDs;
 	FD_ZERO(&peerFDs);
-
-	//
 
 	// MUST FORK THIS FUNCTION
 	
@@ -367,7 +356,6 @@ int Peer::startLeeching(vector<string>& currentPortList){
 					cout << "Attempting to connect to port " << portList[i] << endl;
 
 					seederSocketFD = connectToClient(selfIP, port.c_str());			//connect to seeder: port and ip need to be c strings
-// 					cout << "Connection attempt successful." << endl;
 					if(!FD_ISSET(seederSocketFD, &peerFDs)){
 						FD_SET(seederSocketFD, &peerFDs);
 						cout << "(Client): Added new FD to set." << endl;
@@ -382,7 +370,7 @@ int Peer::startLeeching(vector<string>& currentPortList){
 								memset(readBuffer, 0, 100);			//initialize buffer to 0's
 								cout << "(Client): Waiting for response." << endl;
 								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
-								cout << "(Client): Response received." << endl;
+								cout << "(Client): Response received. ";
 								cout << "Bytes Received: " << recievedBytes << endl;
 								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
 								string data = string(writeBuffer.begin(), writeBuffer.end());
@@ -403,10 +391,12 @@ int Peer::startLeeching(vector<string>& currentPortList){
 				}
 			}
 			if(seederList.size() > 0){
-				// need to update list and remove any seeders that no longer have useful data
-				// ***still need a function to do this so placeholder for now***
 				cout << "(Client): Getting data from connected Peers." << endl;
-				for(int i = 0; i < seederList.size() i++){
+				for(int i = 0; i < seederList.size(); i++){
+					//**NEEDS TO SELECT APPROPRIATE INDEX**
+					int choosenIndex;
+
+
 					string pRMsg = createPieceRequest(1);
 					cout << "(Client): Sending Message -> " << pRMsg << endl;
 					send(seederList[i], pRMsg.c_str(), pRMsg.length(), 0);
@@ -430,6 +420,10 @@ int Peer::startLeeching(vector<string>& currentPortList){
 			}
 		}
 		//SEND FILE COMPLETE MESSAGE
+		string fCMsg = createCompleteMsg();
+		for(int i = 0; i < seederList.size(); i++){
+			send(seederList[i], fCMsg.c_str(), fCMsg.length(), 0);
+		}
 	}else{
 		cout << "Fork failed." << endl;
 	}
@@ -440,9 +434,9 @@ int Peer::startLeeching(vector<string>& currentPortList){
 		1. Send update request
 		2. Update peer's ipPortList
 */
-void Peer::updatePortList(vector<string> updatedPortList){
+void Peer::updatePortList(string updatedPort){
 	// needs to update port/ip from server
-	portList = updatedPortList;
+	portList.push_back(updatedPort);
 }
 
 // Update list of which peers still have interesting data, remove those that don't
@@ -498,6 +492,10 @@ string Peer::createPieceRequest(int index){
 	msg = ss.str();
 
 	return msg;
+}
+
+string Peer::createCompleteMsg(){
+	return "FILE TRANSFER TO PEER COMPLETE";
 }
 
 int main(){

@@ -9,27 +9,27 @@
 #include <vector>
 #include <list>
 #include <netinet/in.h>
+using namespace std;
 
 class Client {
 
 public:
 	Client();
 	bool connection(int argc, char *argv[]);
-	bool sendStringData(std::string data);
+	bool sendStringData(string data);
 	bool sendIntData(int data);
-	std::string receive(int size); 
-	std::string receive(std::string s); 
-	std::string getUploadPath();
+	string receive(int size); 
+	string receive(string s); 
+	string getUploadPath();
 	int chooseDownloadFile();
-	bool checkFileValidity(std::string path);
-	void sendUploadInfo(std::string path);
+	bool checkFileValidity(string path);
+	void sendUploadInfo(string path);
 	void close_connection();	
 private:
 	int sock;			//holds socket
-	std::string server;		//address of server
+	string server;			//address of server
 	int port;			//predefined port number of server
 	struct sockaddr_in sock_addr;	//socket address	
-
 };
 
 #endif /* CLIENT_HPP_ */
