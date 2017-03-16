@@ -31,7 +31,7 @@ using namespace std;
 #define MAXDATASIZE 100
 
 //figure out what the user wants to do
-void getUserData(char &u_or_d) {
+void Client::getUserData(char &u_or_d) {
 
 	//check to make sure user entered either upload or download
 	while ((u_or_d != 'u') && (u_or_d != 'd')) {
@@ -222,35 +222,16 @@ int Client::chooseDownloadFile() {
 }
 
 //encode integer
-string encode(int x) {
-	string r;
-	r.append("i");
-	r.append(to_string(x));
-	r.append("e");
-	return r;
-}
-
-//encode string
-string encode(string x) {
-	string r;
-	int length = x.length();
-	r.append(to_string(length));
-	r.append(":");
-	r.append(x);
-	return r;
-}
-
-//encode integer
-string encode(int x, std::string path) {
+string Client::encode(int x, std::string path) {
 	string r;
 	r.append(to_string(x));
 	r.append(":");
 	r.append(path);
 	return r;
 }
-/*
+
 //encode string
-bool filesComplete(vector<Peer> peerList) {
+bool Client::filesComplete(vector<Peer*> peerList) {
 	bool complete;
 
 	//iterate through the peerList
@@ -258,7 +239,7 @@ bool filesComplete(vector<Peer> peerList) {
 	for (int i = 0; i < peerList.size(); ++i) {
 		if (complete == true) {
 			cout << peerList[i] << endl;
-			complete = peerList[i].fileComplete();		
+			complete = peerList[i]->fileComplete();		
 		} else {
 			return complete;
 		}
@@ -266,7 +247,6 @@ bool filesComplete(vector<Peer> peerList) {
 
 	return complete;
 }
-*/
 
 //close connection to server
 void Client::close_connection() {

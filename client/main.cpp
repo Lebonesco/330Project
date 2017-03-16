@@ -4,12 +4,11 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "client_interface.cpp"
-#include "../peer/testVersion/Peer.cpp"
-#include "metafile.cpp"
-
+#include "client.hpp"
+//#include "../peer/testVersion/Peer.hpp"
+//#include "metafile.hpp"
 using namespace std;
-//using namespace metafile;
+using namespace metafile;
 
 int main(int argc, char * argv[]) {
 
@@ -19,7 +18,7 @@ int main(int argc, char * argv[]) {
         string path;
 	string updatePort;
         vector<string> ports;
-	vector<Peer> peers;
+	vector<Peer*> peers;
         bool connected = false;
         string peer_info;
         string bencoded_info;
@@ -30,15 +29,16 @@ int main(int argc, char * argv[]) {
                 return -1;
         }
 
-	Metafile* m = new Metafile(path);
+	metafile::Metafile* m = new Metafile(path);
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
+	ports.push_back("9000");
 	Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "Seed"); 
 	seeder->startSeeding(seeder->selfIP, seeder->selfPort);
-	peers[0] = *seeder;
+	peers.push_back(seeder);
 
 	char upORdown = 'a';
-	getUserData(upORdown);
+	c.getUserData(upORdown);
 	if (upORdown == 'u') {
 		//send server message that user wants to upload
 		message = "upload";
@@ -50,14 +50,13 @@ int main(int argc, char * argv[]) {
 		//encode port number
 		seeder->selfPort = "9000";
 		ports.push_back(seeder->selfPort);
-		//cout << c.sendStringData(encode(seeder->selfPort)) << endl;
+		cout << c.sendStringData(encode(seeder->selfPort)) << endl;
 
 		//read in garbage message
 		garbage = c.receive(20);
 
 		//encode the path
-		//message = encode(path);
-		message = encode(9000, path);
+		message = c.encode(9000, path);
 		c.sendStringData(message);
 
 	} else {
@@ -71,38 +70,38 @@ int main(int argc, char * argv[]) {
                 bencoded_info = c.receive(size);
                 //peer_info = decode(bencoded_info);
                 cout << bencoded_info << endl;
-/*
+
                 //peer class?
 		//peer class starts leeching
-		Peer* leecher1(m->chunkNumber, "9001", ports, "Leech");
-		//peers.push_back(leecher1);
+		ports.push_back("9001");
+		Peer* leecher1 = new Peer(m->chunkNumber, "9001", ports, "Leech");
+		peers.push_back(leecher1);
 		leecher1->startLeeching(leecher1->portList);
-		peers[1] = *leecher1;
 		c.sendStringData("9001");
 
-		Peer* leecher2(m->chunkNumber, "9002", ports, "Leech");
-		//peers.push_back(leecher2);
+		ports.push_back("9002");
+		Peer* leecher2 = new Peer(m->chunkNumber, "9002", ports, "Leech");
+		peers.push_back(leecher2);
 		leecher2->startLeeching(leecher2->portList);
-		peers[2] = *leecher2;
 		c.sendStringData("9002");
 
-		Peer* leecher3(m->chunkNumber, "9003", ports, "Leech");
-		//peers.push_back(leecher3);
+		ports.push_back("9003");
+		Peer* leecher3 = new Peer(m->chunkNumber, "9003", ports, "Leech");
 		leecher3->startLeeching(leecher3->portList);
-		peers[3] = *leecher3;
+		peers.push_back(leecher3);
 		c.sendStringData("9003");
 
 		//constantly listen for update list from server to send to peer
-		while(!filesComplete(peers)) {
+		while(!c.filesComplete(peers)) {
 			//iterate through peers vector
 			//update peer list
 			updatePort = c.receive(4);
 			for (int i = 0; i < peers.size(); ++i) {
                         	//cout << peers[i] << endl;
-				peers[i].updatePortList(updatePort);
+				peers[i]->updatePortList(updatePort);
                 	}
 		}
-*/			
+			
                 //server sends message of number of packages to be sent
                 //recieve listing from server of downloadable files
                 //cout << c.receive(size) << endl;
