@@ -305,9 +305,6 @@ int main(void)
                 send(new_fd, "Invalid entry",13,0);
             }
             
-            freeArray(&port_array,4);
-            freeArray(&name_array, 20);
-            
             close(new_fd);
             exit(0);
         }
