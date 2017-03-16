@@ -7,7 +7,7 @@
 
 using namespace std;
 
-string encode(int x) {
+string encodeInt(int x) {
 	string r;
 	r.append("i");
 	r.append(to_string(x));
@@ -15,7 +15,7 @@ string encode(int x) {
 	return r;
 }
 
-string encode(string x) {
+string encodeStr(string x) {
 	string r;
 	int length = x.length();
 	r.append(to_string(length));
@@ -24,8 +24,16 @@ string encode(string x) {
 	return r;
 }
 
+string encodeSeeder(int x, std::string path) {
+	string r;
+	r.append(to_string(x));
+	r.append(":");
+	r.append(path);
+	return r;
+}
+
 template <typename T, typename K>
-string encode(map<T, K> x) {
+string encodeMap(map<T, K> x) {
 	string r;
 	r.append("d");
 	typename map<T, K>::iterator it = x.begin();
@@ -63,7 +71,7 @@ vector<string> decode(string data) {
 	}
 	return result;
 }
-
+/*
 int main(){
 	string r;	
 	int tmp = 5;
@@ -91,3 +99,4 @@ int main(){
 
 	return 0;
 }
+*/

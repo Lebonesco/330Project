@@ -20,7 +20,7 @@
 
 #include "tracker.h"
 
-#define PORT "8501"  // the port users will be connecting to
+#define PORT "8502"  // the port users will be connecting to
 
 #define BACKLOG 100     // how many pending connections queue will hold
 
@@ -250,7 +250,7 @@ int main(void)
 //        updateList(data_array,count,s);
 //        print_list(data_array,count);
         
-        while (!fork()) { // this is the child process
+        if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
             
@@ -259,7 +259,7 @@ int main(void)
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
             buffer[15] = '\0';
-            buffer[0] ='\0';
+            
             
             printf("Message from client: %s\n", buffer);
             
@@ -267,8 +267,8 @@ int main(void)
             if (strncmp(buffer,"download",8)==0){
                 
                 puts("requested download");
-                char *encoded = encode_list(port_array,port_count);
-                send(new_fd, encoded, sizeof(encoded), 0);
+                //char *encoded = encode_list(port_array,port_count);
+                send(new_fd, encode_list(port_array,port_count), sizeof(encode_list(port_array,port_count))-1, 0);
                 puts("list sent: ");
                 print_list(port_array,port_count);
                     
@@ -315,6 +315,8 @@ int main(void)
                 send(new_fd, "Invalid entry",13,0);
                     
             }
+            
+            buffer[0] ='\0';
             
             close(new_fd);
             exit(0);
