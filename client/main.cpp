@@ -33,8 +33,8 @@ int main(int argc, char * argv[]) {
 	metafile::Metafile* m = new Metafile(path);
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
-	ports.push_back("9000");
 	Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "Seed"); 
+	ports.push_back("9000");
 	seeder->startSeeding(seeder->selfIP, seeder->selfPort);
 	peers.push_back(seeder);
 
@@ -47,12 +47,15 @@ int main(int argc, char * argv[]) {
 
 		//read in the path to the file the user would like to upload		
 		path = c.getUploadPath();
-
+/*
+		Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "Seed"); 
 		//encode port number
 		seeder->selfPort = "9000";
 		ports.push_back(seeder->selfPort);
 		cout << c.sendStringData(encodeStr("9000")) << endl;
-
+		seeder->startSeeding(seeder->selfIP, seeder->selfPort);
+		peers.push_back(seeder);
+*/
 		//read in garbage message
 		garbage = c.receive(20);
 
@@ -64,7 +67,17 @@ int main(int argc, char * argv[]) {
 		//send client message that user wants to download
 		message = "download";
 		c.sendStringData(message);
-
+/*
+		if (ports[0] != "9000") {
+			Peer* seeder = new Peer(m->chunkNumber, "9000", ports, "Seed"); 
+			//encode port number
+			seeder->selfPort = "9000";
+			ports.push_back(seeder->selfPort);
+			cout << c.sendStringData(encodeStr("9000")) << endl;
+			seeder->startSeeding(seeder->selfIP, seeder->selfPort);
+			peers.push_back(seeder);
+		}
+*/
 		//display the options of files to be downloaded
                 //get user input on which file they would like to download
                 //c.chooseDownloadFile();
@@ -73,20 +86,20 @@ int main(int argc, char * argv[]) {
                 cout << bencoded_info << endl;
 
 		//peer class starts leeching
-		ports.push_back("9001");
 		Peer* leecher1 = new Peer(m->chunkNumber, "9001", ports, "Leech");
+		ports.push_back("9001");
 		peers.push_back(leecher1);
 		leecher1->startLeeching(leecher1->portList);
 		c.sendStringData("9001");
 
-		ports.push_back("9002");
 		Peer* leecher2 = new Peer(m->chunkNumber, "9002", ports, "Leech");
+		ports.push_back("9002");
 		peers.push_back(leecher2);
 		leecher2->startLeeching(leecher2->portList);
 		c.sendStringData("9002");
 
-		ports.push_back("9003");
 		Peer* leecher3 = new Peer(m->chunkNumber, "9003", ports, "Leech");
+		ports.push_back("9003");
 		leecher3->startLeeching(leecher3->portList);
 		peers.push_back(leecher3);
 		c.sendStringData("9003");
