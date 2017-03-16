@@ -497,7 +497,7 @@ string Peer::createPieceRequest(int index){
 string Peer::createCompleteMsg(){
 	return "FILE TRANSFER TO PEER COMPLETE";
 }
-
+/*
 int main(){
 
 	int chunks1 = 5;
@@ -521,3 +521,4 @@ int main(){
 
 	return 0;
 }
+*/
