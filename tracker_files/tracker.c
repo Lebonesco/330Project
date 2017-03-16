@@ -60,7 +60,7 @@ void extract_port(const char *string, int index, char **array){
 // Extracts file name from the uploader and adds it to its respective list
 void extract_name(const char *string, int index, char **array){
     char *f_name;
-    strncpy(f_name,string+4,20);
+    strncpy(f_name,string+5,20);
     updateList(array,index,f_name);
     
 }
