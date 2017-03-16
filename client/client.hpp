@@ -10,7 +10,7 @@
 #include <list>
 #include <netinet/in.h>
 #include "../peer/testVersion/Peer.hpp"
-#include "metafile.hpp"
+#include "../metafile/metafile.hpp"
 //#include "../metafile/encoding.cpp"
 using namespace std;
 using namespace metafile;

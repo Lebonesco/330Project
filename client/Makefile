@@ -1,5 +1,5 @@
 SOURCES =  main.cpp client_interface.cpp ../metafile/metafile.cpp ../peer/testVersion/chunkQueue.cpp ../peer/testVersion/Peer.cpp 
-HEADERS = client.hpp chunkQueue.hpp Peer.hpp chunkQueue.hpp metafile.hpp
+HEADERS = client.hpp ../peer/testVersion/Peer.hpp ../peer/testVersion/chunkQueue.hpp ../metafile/metafile.hpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 RM = rm
