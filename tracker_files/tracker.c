@@ -203,10 +203,10 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
-    data_array = (char **)malloc(1 * sizeof(char *));
-    for (int i = 0; i < INET6_ADDRSTRLEN; i++){
-        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
-    }
+//    data_array = (char **)malloc(1 * sizeof(char *));
+//    for (int i = 0; i < INET6_ADDRSTRLEN; i++){
+//        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
+//    }
     
     // Port number array
     port_array = (char **)malloc(5 * sizeof(char *));
@@ -247,7 +247,8 @@ int main(void)
         printf("Number of peers: %d\n", count);
         
         // Update peer list with new client that just connected
-        updateList(data_array,count,s);
+//        updateList(data_array,count,s);
+//        print_list(data_array,count);
         
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
@@ -303,13 +304,15 @@ int main(void)
                 printf("Invalid entry\n");
                 send(new_fd, "Invalid entry",13,0);
             }
-
+            
+            freeArray(&port_array,4);
+            freeArray(&name_array, 20);
             
             close(new_fd);
             exit(0);
         }
         
-        freeArray(&data_array,INET6_ADDRSTRLEN);
+        //freeArray(&data_array,INET6_ADDRSTRLEN);
         freeArray(&port_array,4);
         freeArray(&name_array, 20);
         
