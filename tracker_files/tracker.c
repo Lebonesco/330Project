@@ -258,7 +258,7 @@ int main(void)
             // Receive message from client to see which repsone to send
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
-            buffer[16] = '\0';
+            
             
             printf("Message from client: %s\n", buffer);
             
@@ -270,6 +270,8 @@ int main(void)
                     send(new_fd, encoded, sizeof(encoded), 0);
                     puts("list sent: ");
                     print_list(port_array,port_count);
+                    buffer[15] = '\0';
+                    
                 }
             
                 else if (strncmp(buffer,"upload",6)==0){
@@ -286,6 +288,8 @@ int main(void)
                     puts("Updated lists: ");
                     print_list(port_array,port_count);
                     print_list(name_array,filename_count);
+                    buffer[15] = '\0';
+                    
                 
                 }
             
@@ -300,11 +304,13 @@ int main(void)
                     printf("port number updated: %s\n", port_number);
                     puts("Updated list: ");
                     print_list(port_array,port_count);
+                    buffer[15] = '\0';
                 }
                 else {
                     // Client sent an invalid message
                     printf("Invalid entry\n");
                     send(new_fd, "Invalid entry",13,0);
+                    buffer[15] = '\0';
                 }
             }
             
