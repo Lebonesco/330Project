@@ -249,25 +249,6 @@ int main(void)
         // Update peer list with new client that just connected
         updateList(data_array,count,s);
         
-        // TESTING: Print out contents in list
-        puts("Contents in total list:");
-        for (int i = 0; i < count; i++){
-            printf("%d) %s\n", i+1, data_array[i]);
-        }
-        
-        // TESTING: Print out contents in port list
-        puts("Contents in port list:");
-        for (int i = 0; i < port_count; i++){
-            printf("%d) %s\n", i+1, port_array[i]);
-        }
-        
-        // TESTING: Print out contents in file name list
-        puts("Contents in file name list:");
-        for (int i = 0; i < filename_count; i++){
-            printf("%d) %s\n", i+1, name_array[i]);
-        }
-        
-        
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
