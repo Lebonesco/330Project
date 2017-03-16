@@ -258,6 +258,7 @@ int main(void)
             // Receive message from client to see which repsone to send
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
+            buffer[16] = '\0';
             
             printf("Message from client: %s\n", buffer);
             
