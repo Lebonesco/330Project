@@ -7,6 +7,7 @@
 #include "client.hpp"
 //#include "../peer/testVersion/Peer.hpp"
 //#include "metafile.hpp"
+#include "../metafile/encoding.cpp"
 using namespace std;
 using namespace metafile;
 
@@ -50,13 +51,13 @@ int main(int argc, char * argv[]) {
 		//encode port number
 		seeder->selfPort = "9000";
 		ports.push_back(seeder->selfPort);
-		cout << c.sendStringData(encode(seeder->selfPort)) << endl;
+		cout << c.sendStringData(encodeStr("9000")) << endl;
 
 		//read in garbage message
 		garbage = c.receive(20);
 
 		//encode the path
-		message = c.encode(9000, path);
+		message = encodeSeeder(9000, path);
 		c.sendStringData(message);
 
 	} else {
@@ -71,7 +72,6 @@ int main(int argc, char * argv[]) {
                 //peer_info = decode(bencoded_info);
                 cout << bencoded_info << endl;
 
-                //peer class?
 		//peer class starts leeching
 		ports.push_back("9001");
 		Peer* leecher1 = new Peer(m->chunkNumber, "9001", ports, "Leech");
@@ -96,6 +96,7 @@ int main(int argc, char * argv[]) {
 			//iterate through peers vector
 			//update peer list
 			updatePort = c.receive(4);
+			ports = decode(updatePort);
 			for (int i = 0; i < peers.size(); ++i) {
                         	//cout << peers[i] << endl;
 				peers[i]->updatePortList(updatePort);

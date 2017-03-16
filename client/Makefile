@@ -1,4 +1,4 @@
-SOURCES =  main.cpp client_interface.cpp ../metafile/metafile.cpp ../peer/testVersion/chunkQueue.cpp ../peer/testVersion/Peer.cpp ../metafile/encoding.cpp 
+SOURCES =  main.cpp client_interface.cpp ../metafile/metafile.cpp ../peer/testVersion/chunkQueue.cpp ../peer/testVersion/Peer.cpp 
 HEADERS = client.hpp chunkQueue.hpp Peer.hpp chunkQueue.hpp metafile.hpp
 OBJECTS = $(SOURCES:.cpp=.o)
 

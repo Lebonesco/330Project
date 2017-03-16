@@ -103,20 +103,6 @@ bool Client::sendStringData(string data) {
 
 	return true;
 }
-
-/*
-//send int data to server
-bool Client::sendIntData(int data) {
-        if (send(sock, data, 100, 0) < 0) {
-                cout << "Send has failed" << endl;
-                return false;
-        }
-        cout << data << " sent" << endl;
-
-        return true;
-}
-*/
-
 //receive data from server
 string Client::receive(int size) {
 	char buffer[size];
@@ -220,7 +206,7 @@ int Client::chooseDownloadFile() {
 	
 	return fileNum;
 }
-
+/*
 //encode integer
 string Client::encode(int x, std::string path) {
 	string r;
@@ -229,13 +215,12 @@ string Client::encode(int x, std::string path) {
 	r.append(path);
 	return r;
 }
-
-//encode string
+*/
+//iterate through the peerList
+//check if files are complete
 bool Client::filesComplete(vector<Peer*> peerList) {
 	bool complete;
 
-	//iterate through the peerList
-	//check if files are complete
 	for (int i = 0; i < peerList.size(); ++i) {
 		if (complete == true) {
 			cout << peerList[i] << endl;
@@ -244,7 +229,6 @@ bool Client::filesComplete(vector<Peer*> peerList) {
 			return complete;
 		}
 	}
-
 	return complete;
 }
 

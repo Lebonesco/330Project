@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include "../peer/testVersion/Peer.hpp"
 #include "metafile.hpp"
-#include "../metafile/encoding.cpp"
+//#include "../metafile/encoding.cpp"
 using namespace std;
 using namespace metafile;
 
@@ -27,7 +27,7 @@ public:
 	string receive(string s); 
 	string getUploadPath();
 	int chooseDownloadFile();
-	string encode(int port, string file);
+//	string encode(int port, string file);
 	bool filesComplete(vector<Peer*> p);
 	bool checkFileValidity(string path);
 	void sendUploadInfo(string path);
