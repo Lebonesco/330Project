@@ -26,8 +26,7 @@ public:
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::vector<std::string>& portList);
-	void updatePortList(std::string port);
-	void getPeerData(std::vector<int> seederList);
+	void updatePortList(std::vector<std::string> ports);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type);
 	void setFileData(std::vector<const char*> data);
