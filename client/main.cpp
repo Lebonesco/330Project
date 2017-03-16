@@ -124,7 +124,6 @@ int main(int argc, char * argv[]) {
 					peers[i]->updatePortList(ports);
                 		}
 			}
-			
                 	//server sends message of number of packages to be sent
                 	//recieve listing from server of downloadable files
                 	//cout << c.receive(size) << endl;
