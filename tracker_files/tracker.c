@@ -262,56 +262,55 @@ int main(void)
             
             printf("Message from client: %s\n", buffer);
             
-            while (strncmp(buffer,"quit",4) != 0){
-                if (strncmp(buffer,"download",8)==0){
-                    // Send fake message to client
-                    puts("requested download");
-                    char *encoded = encode_list(port_array,port_count);
-                    send(new_fd, encoded, sizeof(encoded), 0);
-                    puts("list sent: ");
-                    print_list(port_array,port_count);
+            
+            if (strncmp(buffer,"download",8)==0){
+                
+                puts("requested download");
+                char *encoded = encode_list(port_array,port_count);
+                send(new_fd, encoded, sizeof(encoded), 0);
+                puts("list sent: ");
+                print_list(port_array,port_count);
                     
                     
+            }
+            
+            else if (strncmp(buffer,"upload",6)==0){
+                puts("requested upload");
+                filename_count++;
+                port_count++;
+            
+                if (recv(new_fd, input,sizeof(input),0) < 0){
+                    printf("Error receiving from client\n");
                 }
-            
-                else if (strncmp(buffer,"upload",6)==0){
-                    puts("requested upload");
-                    filename_count++;
-                    port_count++;
-            
-                    if (recv(new_fd, input,sizeof(input),0) < 0){
-                        printf("Error receiving from client\n");
-                    }
-                    extract_port(input,port_count,port_array);
-                    extract_name(input,filename_count,name_array);
-                    printf("Input received: %s\n", input);
-                    puts("Updated lists: ");
-                    print_list(port_array,port_count);
-                    print_list(name_array,filename_count);
-                    input[19] = '\0';
+                extract_port(input,port_count,port_array);
+                extract_name(input,filename_count,name_array);
+                printf("Input received: %s\n", input);
+                puts("Updated lists: ");
+                print_list(port_array,port_count);
+                print_list(name_array,filename_count);
+                input[19] = '\0';
                     
                 
-                }
+            }
             
-                else if (strncmp(buffer,"update",6)==0){
-                    puts("requested update");
-                    port_count++;
-                    if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
-                        printf("Error receiving from client\n");
-                    }
-                    updateList(port_array,port_count,port_number);
-                    send(new_fd,port_number,sizeof(port_number),0);
-                    printf("port number updated: %s\n", port_number);
-                    puts("Updated list: ");
-                    print_list(port_array,port_count);
-                    port_number[3] = '\0';
+            else if (strncmp(buffer,"update",6)==0){
+                puts("requested update");
+                port_count++;
+                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
+                    printf("Error receiving from client\n");
                 }
-                else {
-                    // Client sent an invalid message
-                    printf("Invalid entry\n");
-                    send(new_fd, "Invalid entry",13,0);
+                updateList(port_array,port_count,port_number);
+                send(new_fd,port_number,sizeof(port_number),0);
+                printf("port number updated: %s\n", port_number);
+                puts("Updated list: ");
+                print_list(port_array,port_count);
+                port_number[3] = '\0';
+            }
+            else {
+                // Client sent an invalid message
+                printf("Invalid entry\n");
+                send(new_fd, "Invalid entry",13,0);
                     
-                }
             }
             
             close(new_fd);
