@@ -67,13 +67,20 @@ void extract_name(const char *string, int index, char **array){
 
 // Encodes contents of list into one long string
 char* encode_list(char **array, int index){
-    char *val = (char*)malloc(4*index*sizeof(char));
+    char *val = (char*)malloc(5*index*sizeof(char));
     for (int i = 0; i < index; i++){
         strcat(val,array[i]);
         strcat(val,":");
     }
     
     return val;
+}
+
+// Print out contents in a list
+void print_list(char **array, int index){
+    for (int i = 0; i < index; i++){
+        printf("%d) %s\n", i+1, array[i]);
+    }
 }
 
 //Free memory used in 2 dimensional array
@@ -214,7 +221,7 @@ int main(void)
     }
     
     // Number of clients who want to upload something
-    int uploader_count = 0;
+    int port_count = 0;
     
     // Number of filenames that have been sent
     int filename_count = 0;
@@ -250,7 +257,7 @@ int main(void)
         
         // TESTING: Print out contents in port list
         puts("Contents in port list:");
-        for (int i = 0; i < uploader_count; i++){
+        for (int i = 0; i < port_count; i++){
             printf("%d) %s\n", i+1, port_array[i]);
         }
         
@@ -275,32 +282,40 @@ int main(void)
             if (strncmp(buffer,"download",8)==0){
                 // Send fake message to client
                 puts("requested download");
-                char *encoded = encode_list(port_array,uploader_count);
+                char *encoded = encode_list(port_array,port_count);
                 send(new_fd, encoded, sizeof(encoded), 0);
+                puts("list sent: ");
+                print_list(port_array,port_count);
             }
             
             else if (strncmp(buffer,"upload",6)==0){
                 puts("requested upload");
                 filename_count++;
-                uploader_count++;
+                port_count++;
             
                 if (recv(new_fd, input,sizeof(input),0) < 0){
                     printf("Error receiving from client\n");
                 }
-                extract_port(input,uploader_count,port_array);
+                extract_port(input,port_count,port_array);
                 extract_name(input,filename_count,name_array);
-                printf("Port number received: %s\n", input);
+                printf("Input received: %s\n", input);
+                puts("Updated lists: ");
+                print_list(port_array,port_count);
+                print_list(name_array,filename_count);
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
                 puts("requested update");
-                uploader_count++;
+                port_count++;
                 if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
                     printf("Error receiving from client\n");
                 }
-                updateList(port_array,uploader_count,port_number);
+                updateList(port_array,port_count,port_number);
                 send(new_fd,port_number,sizeof(port_number),0);
+                printf("port number updated: %s\n", port_number);
+                puts("Updated list: ");
+                print_list(port_array,port_count);
             }
             else {
                 // Client sent an invalid message
@@ -313,12 +328,12 @@ int main(void)
             exit(0);
         }
         
+        freeArray(&data_array,INET6_ADDRSTRLEN);
+        freeArray(&port_array,4);
+        freeArray(&name_array, 20);
+        
         close(new_fd);  // parent doesn't need this
     }
-    
-    freeArray(&data_array,INET6_ADDRSTRLEN);
-    freeArray(&port_array,4);
-    freeArray(&name_array, 20);
     
     return 0;
 }
