@@ -310,11 +310,12 @@ int main(void)
         }
         
         //freeArray(&data_array,INET6_ADDRSTRLEN);
-        freeArray(&port_array,4);
-        freeArray(&name_array, 20);
         
         close(new_fd);  // parent doesn't need this
     }
+    
+    freeArray(&port_array,4);
+    freeArray(&name_array, 20);
     
     return 0;
 }
