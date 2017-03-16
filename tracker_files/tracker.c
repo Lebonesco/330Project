@@ -250,7 +250,7 @@ int main(void)
 //        updateList(data_array,count,s);
 //        print_list(data_array,count);
         
-        if (!fork()) { // this is the child process
+        while (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
             
