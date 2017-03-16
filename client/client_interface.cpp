@@ -27,26 +27,26 @@ using namespace std;
 //using namespace metafile;
 //using namespace peer;
 
-#define PORT 8500
+#define PORT 8501
 #define MAXDATASIZE 100
-
-//figure out what the user wants to do
-void Client::getUserData(char &u_or_d) {
-
-	//check to make sure user entered either upload or download
-	while ((u_or_d != 'u') && (u_or_d != 'd')) {
-		cout << "Would you like to upload(u) or download(d) a file? ";
-        	cin >> &u_or_d;
-        	cout << "Upload or Download: " << u_or_d << endl;
-	}
-	
-}
 
 //client constructor
 Client::Client() {
 	port = PORT;
 	server = "127.0.0.1";	//server is localhost
 	sock = -1;
+}
+
+//figure out what the user wants to do
+void Client::getUserData(char &u_or_d) {
+
+	//check to make sure user entered either upload or download
+	while ((u_or_d != 'u') && (u_or_d != 'd') && (u_or_d != 'q')) {
+		cout << "Would you like to upload(u) or download(d) a file? ";
+        	cin >> &u_or_d;
+        	cout << "Upload or Download: " << u_or_d << endl;
+	}
+	
 }
 
 //check if connection was successful
