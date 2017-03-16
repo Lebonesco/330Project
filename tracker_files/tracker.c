@@ -20,7 +20,7 @@
 
 #include "tracker.h"
 
-#define PORT "8500"  // the port users will be connecting to
+#define PORT "8501"  // the port users will be connecting to
 
 #define BACKLOG 100     // how many pending connections queue will hold
 
@@ -60,7 +60,7 @@ void extract_port(const char *string, int index, char **array){
 // Extracts file name from the uploader and adds it to its respective list
 void extract_name(const char *string, int index, char **array){
     char *f_name;
-    strncpy(f_name,string+4,20);
+    strncpy(f_name,string+5,20);
     updateList(array,index,f_name);
     
 }
@@ -250,7 +250,7 @@ int main(void)
 //        updateList(data_array,count,s);
 //        print_list(data_array,count);
         
-        if (!fork()) { // this is the child process
+        while (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             
             
@@ -258,16 +258,21 @@ int main(void)
             // Receive message from client to see which repsone to send
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
+            buffer[15] = '\0';
+            buffer[0] ='\0';
             
             printf("Message from client: %s\n", buffer);
             
+            
             if (strncmp(buffer,"download",8)==0){
-                // Send fake message to client
+                
                 puts("requested download");
                 char *encoded = encode_list(port_array,port_count);
                 send(new_fd, encoded, sizeof(encoded), 0);
                 puts("list sent: ");
                 print_list(port_array,port_count);
+                    
+                    
             }
             
             else if (strncmp(buffer,"upload",6)==0){
@@ -275,7 +280,7 @@ int main(void)
                 filename_count++;
                 port_count++;
             
-                if (recv(new_fd, input,sizeof(input),0) < 0){
+                if (recv(new_fd, input,sizeof(input)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 extract_port(input,port_count,port_array);
@@ -284,13 +289,16 @@ int main(void)
                 puts("Updated lists: ");
                 print_list(port_array,port_count);
                 print_list(name_array,filename_count);
+                input[19] = '\0';
+                input[0] = '\0';
+                    
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
                 puts("requested update");
                 port_count++;
-                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
+                if (recv(new_fd, port_number,sizeof(port_number)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 updateList(port_array,port_count,port_number);
@@ -298,15 +306,15 @@ int main(void)
                 printf("port number updated: %s\n", port_number);
                 puts("Updated list: ");
                 print_list(port_array,port_count);
+                port_number[3] = '\0';
+                port_number[0] ='\0';
             }
             else {
                 // Client sent an invalid message
                 printf("Invalid entry\n");
                 send(new_fd, "Invalid entry",13,0);
+                    
             }
-            
-            freeArray(&port_array,4);
-            freeArray(&name_array, 20);
             
             close(new_fd);
             exit(0);
@@ -316,6 +324,9 @@ int main(void)
         
         close(new_fd);  // parent doesn't need this
     }
+    
+    freeArray(&port_array,4);
+    freeArray(&name_array, 20);
     
     return 0;
 }

@@ -9,15 +9,13 @@
 #include <sstream>			// for stringstreams
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
+#include <set>				// for the magic that is sets
 #include "Peer.hpp"
 #include "chunkQueue.hpp"
 //#include "metafile.hpp"
 
 using namespace std;
 
-/* TODO:
-		1. Figure out how to set peer IP to machine's IP
-*/
 Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, string type){
 	numPieces = numChunks;
 	portList = recvPortList;
@@ -43,7 +41,7 @@ int Peer::createSocket(string peerType){
 	socketDesc = socket(AF_INET, SOCK_STREAM, 0);
 
 	// if peerType == seeder 
-	if(peerType == string("SEEDER")){
+	if(peerType == string("Seeder")){
 		fcntl(socketDesc, F_SETFL, O_NONBLOCK);
 	}
 
@@ -109,9 +107,7 @@ int Peer::acceptConnection(int seederDesc){
 
 }
 
-/* TODO:
-		1. May need to fork listen process ( ask Roscoe )	
-*/
+
 int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	
 	int listener;			
@@ -125,86 +121,92 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
+	pid_t pid = fork();
 
-	listener = listen(socketDesc, 5);	// listen for connections; backlog 5
+	if(pid == 0){
+		listener = listen(socketDesc, 5);	// listen for connections; backlog 5
+	}else if(pid > 0){
 
-	if(listener != 0){
-		cout << "Error listening on selected Port" << endl;
-	}
-	else{
+		if(listener != 0){
+			cout << "Error listening on selected Port" << endl;
+		}
+		else{
 
-		FD_SET(socketDesc, &allFDs);	// add socket FD to set of All FD's
-		maxConnectedFD = socketDesc;	// set max FD to socket passed in
-		cout << "Server ready for connections" << endl;
-		
-		while(1){
+			FD_SET(socketDesc, &allFDs);	// add socket FD to set of All FD's
+			maxConnectedFD = socketDesc;	// set max FD to socket passed in
+			cout << "Server ready for connections" << endl;
+			
+			while(1){
 
-			connectedSocketFDs = allFDs;
+				connectedSocketFDs = allFDs;
 
-			if(select(maxConnectedFD + 1, &connectedSocketFDs, NULL, NULL, NULL) == -1){	// need to add 1 to max
-				cout << "Error selecting File Descriptor (socket)" << endl;	
-			}
-			else{
+				if(select(maxConnectedFD + 1, &connectedSocketFDs, NULL, NULL, NULL) == -1){	// need to add 1 to max
+					cout << "Error selecting File Descriptor (socket)" << endl;	
+				}
+				else{
 
-				for(int i = 0; i <= maxConnectedFD; i++){
-					// check if i is actually a stored connection
-					if(FD_ISSET(i, &connectedSocketFDs)){
-						recievedBytes = 0;
-						
-						// if the current socket is the host/server that was passed in
-						if(i == socketDesc){
-							newClientSocket = acceptConnection(socketDesc);
-							cout << "(Server): Connection accepted." << endl;
- 
-							// if connection didn't fail
-							if(newClientSocket != -1){
+					for(int i = 0; i <= maxConnectedFD; i++){
+						// check if i is actually a stored connection
+						if(FD_ISSET(i, &connectedSocketFDs)){
+							recievedBytes = 0;
+							
+							// if the current socket is the host/server that was passed in
+							if(i == socketDesc){
+								newClientSocket = acceptConnection(socketDesc);
+								cout << "(Server): Connection accepted." << endl;
+	 
+								// if connection didn't fail
+								if(newClientSocket != -1){
 
-								FD_SET(newClientSocket, &allFDs);
-								cout << "(Server): FD added to connection set." << endl;
-								if(newClientSocket > maxConnectedFD){
-									// set new max FD
-									maxConnectedFD = newClientSocket;
+									FD_SET(newClientSocket, &allFDs);
+									cout << "(Server): FD added to connection set." << endl;
+									if(newClientSocket > maxConnectedFD){
+										// set new max FD
+										maxConnectedFD = newClientSocket;
+									}
 								}
-							}
 
-						}else{
-							// recieving data from a socket and performing some action
+							}else{
+								// recieving data from a socket and performing some action
 
-							// MSG_PEEK looks at the next message to be recieved but
-							// does not actually read it
-							recievedBytes = recv(i, socketReadBuff, 1, MSG_PEEK);
-//							cout << "(Server): Message Recieved." << endl;
-							while(recievedBytes > 0){
-								recievedBytes = recv(i, socketReadBuff, sizeof(socketReadBuff), 0);
-								socketWriteBuffer.insert(socketWriteBuffer.end(), socketReadBuff, socketReadBuff + recievedBytes);
-								if(recievedBytes < 64){
-									break;
+								// MSG_PEEK looks at the next message to be recieved but
+								// does not actually read it
+								recievedBytes = recv(i, socketReadBuff, 1, MSG_PEEK);
+	//							cout << "(Server): Message Recieved." << endl;
+								while(recievedBytes > 0){
+									recievedBytes = recv(i, socketReadBuff, sizeof(socketReadBuff), 0);
+									socketWriteBuffer.insert(socketWriteBuffer.end(), socketReadBuff, socketReadBuff + recievedBytes);
+									if(recievedBytes < 64){
+										break;
+									}
 								}
-							}
-							// copy recieved message data to 'data' variable
-							string data = string(socketWriteBuffer.begin(), socketWriteBuffer.end());
-							socketWriteBuffer.clear();
+								// copy recieved message data to 'data' variable
+								string data = string(socketWriteBuffer.begin(), socketWriteBuffer.end());
+								socketWriteBuffer.clear();
 
-							// Take appropriate action based on message type
-							// and check if client has sent a 'completed' message
-//							cout << "(Server): Reading message: " << data << endl;
-							readRecvMSG(data, i);
+								// Take appropriate action based on message type
+								// and check if client has sent a 'completed' message
+	//							cout << "(Server): Reading message: " << data << endl;
+								readRecvMSG(data, i);
 
-							// ***Completed message type doesn't currently exist...***
-							if(data.find("type:COMPLETED") != string::npos){
-								cout << "File transfer to peer completed. Closing connection." << endl;
-								close(i);
-								FD_CLR(i, &allFDs);
+								// ***Completed message type doesn't currently exist...***
+								if(data.find("type:COMPLETED") != string::npos){
+									cout << "File transfer to peer completed. Closing connection." << endl;
+									close(i);
+									FD_CLR(i, &allFDs);
+								}
 							}
 						}
 					}
+
 				}
+			}	
 
-			}
-		}	
-
+		}
+		return listener;
+	}else{
+		cout << "bindAndListen fork failed." << endl;
 	}
-	return listener;
 
 }
 
@@ -279,6 +281,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 		string dataToWrite = data.substr(data.find("type:PIECE|index:") + 1);
 //		dataBitfield[index] = dataToWrite.c_str();
+		bitfield[index] = 1;		// update peer's bitfield
 	}
 
 	if(data.find("FILE TRANSFER TO PEER COMPLETE") != string::npos){
@@ -393,11 +396,43 @@ int Peer::startLeeching(vector<string>& currentPortList){
 			if(seederList.size() > 0){
 				cout << "(Client): Getting data from connected Peers." << endl;
 				for(int i = 0; i < seederList.size(); i++){
-					//**NEEDS TO SELECT APPROPRIATE INDEX**
+					string bFReqMsg = createBitfieldReqMsg();
+					send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
+					recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
+					while(recievedBytes > 0){
+						// decode message before passing to readRecvMSG
+						memset(readBuffer, 0, 100);			//initialize buffer to 0's
+						recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
+						writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+						string data1 = string(writeBuffer.begin(), writeBuffer.end());
+						if(recievedBytes < 100){
+							break;
+						}
+					}
+					string data1 = string(writeBuffer.begin(), writeBuffer.end());
+					writeBuffer.clear();
+
+					vector<int> recBitfield;
+					string bf = data1.substr(12);
+					set<int> available;
 					int choosenIndex;
+					// populate current connections available bitfield
+					for(int j = 0; j < bf.length(); j++){
+						recBitfield.push_back((int)bf[j] - 48);
+					}
+					// populate available set
+					for(int k = 0; k < recBitfield.size(); k++){
+						if(recBitfield[k] == 1){
+							available.insert(k);
+						}else{
+							continue;
+						}
+					}
 
+					choosenIndex = queue->getChunk(available);
+					cout << "Requesting piece at index: " << choosenIndex << endl;
 
-					string pRMsg = createPieceRequest(1);
+					string pRMsg = createPieceRequest(choosenIndex);
 					cout << "(Client): Sending Message -> " << pRMsg << endl;
 					send(seederList[i], pRMsg.c_str(), pRMsg.length(), 0);
 					recievedBytes = recv(seederList[i], readBuffer, sizeof(readBuffer), MSG_PEEK);
@@ -434,22 +469,9 @@ int Peer::startLeeching(vector<string>& currentPortList){
 		1. Send update request
 		2. Update peer's ipPortList
 */
-void Peer::updatePortList(string updatedPort){
+void Peer::updatePortList(vector<string> ports){
 	// needs to update port/ip from server
-	portList.push_back(updatedPort);
-}
-
-// Update list of which peers still have interesting data, remove those that don't
-// **IN PROGRESS**
-void Peer::getPeerData(vector<int> seederList){
-	/*
-	for(int i = 0; i < seederList.size(); i++){
-		vector<int> availableBitfield;
-		string bFReqMsg = createBitfieldReqMsg();
-		send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
-
-	}
-	*/
+	portList = ports;
 }
 
 bool Peer::fileComplete(){
