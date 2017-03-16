@@ -259,6 +259,7 @@ int main(void)
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
             buffer[15] = '\0';
+            buffer[0] ='\0';
             
             printf("Message from client: %s\n", buffer);
             
@@ -279,7 +280,7 @@ int main(void)
                 filename_count++;
                 port_count++;
             
-                if (recv(new_fd, input,sizeof(input),0) < 0){
+                if (recv(new_fd, input,sizeof(input)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 extract_port(input,port_count,port_array);
@@ -289,6 +290,7 @@ int main(void)
                 print_list(port_array,port_count);
                 print_list(name_array,filename_count);
                 input[19] = '\0';
+                input[0] = '\0';
                     
                 
             }
@@ -296,7 +298,7 @@ int main(void)
             else if (strncmp(buffer,"update",6)==0){
                 puts("requested update");
                 port_count++;
-                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
+                if (recv(new_fd, port_number,sizeof(port_number)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
                 updateList(port_array,port_count,port_number);
@@ -305,6 +307,7 @@ int main(void)
                 puts("Updated list: ");
                 print_list(port_array,port_count);
                 port_number[3] = '\0';
+                port_number[0] ='\0';
             }
             else {
                 // Client sent an invalid message
