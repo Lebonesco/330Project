@@ -112,7 +112,7 @@ int main(int argc, char * argv[]) {
 			ports = decode(updatePort);
 			for (int i = 0; i < peers.size(); ++i) {
                         	//cout << peers[i] << endl;
-				peers[i]->updatePortList(updatePort);
+				peers[i]->updatePortList(ports);
                 	}
 		}
 			

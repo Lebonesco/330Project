@@ -155,6 +155,7 @@ int ChunkQueue::getChunk(set<int> pos) {
 			return (*it).key;
 		}
 	}
+	return (*it).key;
 }
 
 void ChunkQueue::Display() {
