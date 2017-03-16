@@ -469,7 +469,7 @@ int Peer::startLeeching(vector<string>& currentPortList){
 		1. Send update request
 		2. Update peer's ipPortList
 */
-void Peer::updatePortList(vector<string> ports){
+void Peer::updatePortList(vector<string>& ports){
 	// needs to update port/ip from server
 	portList = ports;
 }
@@ -496,7 +496,7 @@ void Peer::createBitfield(int numChunks, string type){
 }
 
 
-void Peer::setFileData(vector<const char*> data){
+void Peer::setFileData(vector<const char*>& data){
 	dataBitfield = data;
 }
 
