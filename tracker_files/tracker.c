@@ -259,7 +259,7 @@ int main(void)
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
             buffer[15] = '\0';
-            buffer[0] ='\0';
+            
             
             printf("Message from client: %s\n", buffer);
             
@@ -315,6 +315,8 @@ int main(void)
                 send(new_fd, "Invalid entry",13,0);
                     
             }
+            
+            buffer[0] ='\0';
             
             close(new_fd);
             exit(0);
