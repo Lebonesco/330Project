@@ -104,7 +104,7 @@ bool Client::sendStringData(string data) {
 	return true;
 }
 //receive data from server
-string Client::receive(int size) {
+void Client::receive(int size) {
 	char buffer[size];
 	std::string s_reply = "";
 	
@@ -112,25 +112,8 @@ string Client::receive(int size) {
 		cout << "Receive has failed" << endl;
 	}
 
-	s_reply = buffer;
-	cout << "Server sent: " << s_reply << endl;
-	return s_reply;
+	cout << "Server sent: " << buffer << endl;
 }
-
-//receive string from server
-string Client::receive(string s) {
-	char buffer[100];
-	string s_reply = s;
-	
-	if (recv(sock, buffer, sizeof(buffer), 0) < 0) {
-		cout << "Receive has failed" << endl;
-	}
-
-	cout << "Server sent: " << s_reply << endl;
-
-	return s_reply;
-}
-
 
 //get user input on path of file to upload
 //open file and send it to server
