@@ -6,7 +6,7 @@
 #include <vector>
 #include <unistd.h>
 #include "client.hpp"
-//#include "../peer/testVersion/Peer.hpp"
+//#include "../peer/Peer.hpp"
 //#include "metafile.hpp"
 #include "../metafile/encoding.cpp"
 using namespace std;
@@ -26,7 +26,7 @@ int main(int argc, char * argv[]) {
         string bencoded_info;
 	string garbage;
 	
-        connected = c.connection(argc, argv);
+        connected = c.connection();
         if (connected == false) {
                 return -1;
         }
