@@ -1,0 +1,13 @@
+Seeder created on port 8000
+Server is ready to listen
+Server ready for connections
+(Server): Connection accepted.
+(Server): FD added to connection set.
+RECIEVED: Bitfield Request.
+SENT: 18 bytes. Message: type:BITFIELD00000
+RECIEVED: Bitfield Request.
+SENT: 18 bytes. Message: type:BITFIELD00000
+RECIEVED: Piece Request.
+SENT: 37 bytes. Message: type:PIECE|index:1A placeholder piece
+RECIEVED: Bitfield Request.
+SENT: 18 bytes. Message: type:BITFIELD00000

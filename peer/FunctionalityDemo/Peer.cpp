@@ -9,15 +9,13 @@
 #include <sstream>			// for stringstreams
 #include <netdb.h>			// needed for 'netinet/in.h' and addrinfo struct
 #include <fcntl.h>			// for fcntl()
+#include <set>				// for the magic that is sets
 #include "Peer.hpp"
 #include "chunkQueue.hpp"
 //#include "metafile.hpp"
 
 using namespace std;
 
-/* TODO:
-		1. Figure out how to set peer IP to machine's IP
-*/
 Peer::Peer(const int numChunks, string port, vector<string>& recvPortList, string type){
 	numPieces = numChunks;
 	portList = recvPortList;
@@ -109,9 +107,7 @@ int Peer::acceptConnection(int seederDesc){
 
 }
 
-/* TODO:
-		1. May need to fork listen process ( ask Roscoe )	
-*/
+
 int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	
 	int listener;			
@@ -279,6 +275,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 
 		string dataToWrite = data.substr(data.find("type:PIECE|index:") + 1);
 //		dataBitfield[index] = dataToWrite.c_str();
+		bitfield[index] = 1;		// update peer's bitfield
 	}
 
 	if(data.find("FILE TRANSFER TO PEER COMPLETE") != string::npos){
@@ -393,11 +390,43 @@ int Peer::startLeeching(vector<string>& currentPortList){
 			if(seederList.size() > 0){
 				cout << "(Client): Getting data from connected Peers." << endl;
 				for(int i = 0; i < seederList.size(); i++){
-					//**NEEDS TO SELECT APPROPRIATE INDEX**
+					string bFReqMsg = createBitfieldReqMsg();
+					send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
+					recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
+					while(recievedBytes > 0){
+						// decode message before passing to readRecvMSG
+						memset(readBuffer, 0, 100);			//initialize buffer to 0's
+						recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
+						writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+						string data1 = string(writeBuffer.begin(), writeBuffer.end());
+						if(recievedBytes < 100){
+							break;
+						}
+					}
+					string data1 = string(writeBuffer.begin(), writeBuffer.end());
+					writeBuffer.clear();
+
+					vector<int> recBitfield;
+					string bf = data1.substr(12);
+					set<int> available;
 					int choosenIndex;
+					// populate current connections available bitfield
+					for(int j = 0; j < bf.length(); j++){
+						recBitfield.push_back((int)bf[j] - 48);
+					}
+					// populate available set
+					for(int k = 0; k < recBitfield.size(); k++){
+						if(recBitfield[k] == 1){
+							available.insert(k);
+						}else{
+							continue;
+						}
+					}
 
+					choosenIndex = queue->getChunk(available);
+					cout << "Requesting piece at index: " << choosenIndex << endl;
 
-					string pRMsg = createPieceRequest(1);
+					string pRMsg = createPieceRequest(choosenIndex);
 					cout << "(Client): Sending Message -> " << pRMsg << endl;
 					send(seederList[i], pRMsg.c_str(), pRMsg.length(), 0);
 					recievedBytes = recv(seederList[i], readBuffer, sizeof(readBuffer), MSG_PEEK);
@@ -434,22 +463,9 @@ int Peer::startLeeching(vector<string>& currentPortList){
 		1. Send update request
 		2. Update peer's ipPortList
 */
-void Peer::updatePortList(string updatedPort){
+void Peer::updatePortList(vector<string> ports){
 	// needs to update port/ip from server
-	portList.push_back(updatedPort);
-}
-
-// Update list of which peers still have interesting data, remove those that don't
-// **IN PROGRESS**
-void Peer::getPeerData(vector<int> seederList){
-	/*
-	for(int i = 0; i < seederList.size(); i++){
-		vector<int> availableBitfield;
-		string bFReqMsg = createBitfieldReqMsg();
-		send(seederList[i], bFReqMsg.c_str(), bFReqMsg.length(), 0);
-
-	}
-	*/
+	portList = ports;
 }
 
 bool Peer::fileComplete(){
@@ -510,7 +526,7 @@ int main(){
 	testList.push_back(testPort2);
 
 	Peer* seeder = new Peer(chunks1, testPort1, testList, "Leech");
-	Peer* leecher = new Peer(chunks2, testPort2, testList, "Leech");
+//	Peer* leecher = new Peer(chunks2, testPort2, testList, "Leech");
 
 	//cout << seeder->selfIP << endl;
 	//cout << seeder->portList[0];

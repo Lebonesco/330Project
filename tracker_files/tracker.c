@@ -20,7 +20,7 @@
 
 #include "tracker.h"
 
-#define PORT "8500"  // the port users will be connecting to
+#define PORT "8502"  // the port users will be connecting to
 
 #define BACKLOG 100     // how many pending connections queue will hold
 
@@ -60,20 +60,27 @@ void extract_port(const char *string, int index, char **array){
 // Extracts file name from the uploader and adds it to its respective list
 void extract_name(const char *string, int index, char **array){
     char *f_name;
-    strncpy(f_name,string+4,20);
+    strncpy(f_name,string+5,20);
     updateList(array,index,f_name);
     
 }
 
 // Encodes contents of list into one long string
 char* encode_list(char **array, int index){
-    char *val = (char*)malloc(4*index*sizeof(char));
+    char *val = (char*)malloc(5*index*sizeof(char));
     for (int i = 0; i < index; i++){
         strcat(val,array[i]);
         strcat(val,":");
     }
     
     return val;
+}
+
+// Print out contents in a list
+void print_list(char **array, int index){
+    for (int i = 0; i < index; i++){
+        printf("%d) %s\n", i+1, array[i]);
+    }
 }
 
 //Free memory used in 2 dimensional array
@@ -196,10 +203,10 @@ int main(void)
     printf("server: waiting for connections...\n");
     
     // Data array for clients that connect to server
-    data_array = (char **)malloc(1 * sizeof(char *));
-    for (int i = 0; i < INET6_ADDRSTRLEN; i++){
-        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
-    }
+//    data_array = (char **)malloc(1 * sizeof(char *));
+//    for (int i = 0; i < INET6_ADDRSTRLEN; i++){
+//        data_array[i] = (char *)malloc(INET6_ADDRSTRLEN * sizeof(char));
+//    }
     
     // Port number array
     port_array = (char **)malloc(5 * sizeof(char *));
@@ -214,7 +221,7 @@ int main(void)
     }
     
     // Number of clients who want to upload something
-    int uploader_count = 0;
+    int port_count = 0;
     
     // Number of filenames that have been sent
     int filename_count = 0;
@@ -240,26 +247,8 @@ int main(void)
         printf("Number of peers: %d\n", count);
         
         // Update peer list with new client that just connected
-        updateList(data_array,count,s);
-        
-        // TESTING: Print out contents in list
-        puts("Contents in total list:");
-        for (int i = 0; i < count; i++){
-            printf("%d) %s\n", i+1, data_array[i]);
-        }
-        
-        // TESTING: Print out contents in port list
-        puts("Contents in port list:");
-        for (int i = 0; i < uploader_count; i++){
-            printf("%d) %s\n", i+1, port_array[i]);
-        }
-        
-        // TESTING: Print out contents in file name list
-        puts("Contents in file name list:");
-        for (int i = 0; i < filename_count; i++){
-            printf("%d) %s\n", i+1, name_array[i]);
-        }
-        
+//        updateList(data_array,count,s);
+//        print_list(data_array,count);
         
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
@@ -269,54 +258,75 @@ int main(void)
             // Receive message from client to see which repsone to send
             n = recv(new_fd,buffer,15,0);
             if (n < 0) perror("ERROR reading from socket");
+            buffer[15] = '\0';
+            
             
             printf("Message from client: %s\n", buffer);
             
+            
             if (strncmp(buffer,"download",8)==0){
-                // Send fake message to client
+                
                 puts("requested download");
-                char *encoded = encode_list(port_array,uploader_count);
-                send(new_fd, encoded, sizeof(encoded), 0);
+                //char *encoded = encode_list(port_array,port_count);
+                send(new_fd, encode_list(port_array,port_count), sizeof(encode_list(port_array,port_count))-1, 0);
+                puts("list sent: ");
+                print_list(port_array,port_count);
+                    
+                    
             }
             
             else if (strncmp(buffer,"upload",6)==0){
                 puts("requested upload");
                 filename_count++;
-                uploader_count++;
+                port_count++;
             
-                if (recv(new_fd, input,sizeof(input),0) < 0){
+                if (recv(new_fd, input,sizeof(input)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                extract_port(input,uploader_count,port_array);
+                extract_port(input,port_count,port_array);
                 extract_name(input,filename_count,name_array);
-                printf("Port number received: %s\n", input);
+                printf("Input received: %s\n", input);
+                puts("Updated lists: ");
+                print_list(port_array,port_count);
+                print_list(name_array,filename_count);
+                input[19] = '\0';
+                input[0] = '\0';
+                    
                 
             }
             
             else if (strncmp(buffer,"update",6)==0){
                 puts("requested update");
-                uploader_count++;
-                if (recv(new_fd, port_number,sizeof(port_number),0) < 0){
+                port_count++;
+                if (recv(new_fd, port_number,sizeof(port_number)-1,0) < 0){
                     printf("Error receiving from client\n");
                 }
-                updateList(port_array,uploader_count,port_number);
+                updateList(port_array,port_count,port_number);
                 send(new_fd,port_number,sizeof(port_number),0);
+                printf("port number updated: %s\n", port_number);
+                puts("Updated list: ");
+                print_list(port_array,port_count);
+                port_number[3] = '\0';
+                port_number[0] ='\0';
             }
             else {
                 // Client sent an invalid message
                 printf("Invalid entry\n");
                 send(new_fd, "Invalid entry",13,0);
+                    
             }
-
+            
+            buffer[0] ='\0';
             
             close(new_fd);
             exit(0);
         }
         
+        //freeArray(&data_array,INET6_ADDRSTRLEN);
+        
         close(new_fd);  // parent doesn't need this
     }
     
-    freeArray(&data_array,INET6_ADDRSTRLEN);
     freeArray(&port_array,4);
     freeArray(&name_array, 20);
     

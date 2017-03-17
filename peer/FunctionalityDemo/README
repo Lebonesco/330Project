@@ -1,0 +1,12 @@
+FUNCTIONALITY DEMO READ ME
+
+So, since we were unable to finish our project in the time frame the version in this folder is the most accurate depiction of the
+functionality that we inteded our Peer class to have. This version shows that the capability to send and recieve messages and requests
+between peers by using placeholders instead of an actual data file.
+
+TO RUN:
+1) execute seeder.exe ---------> ./seeder.exe
+2) execute leecher.exe --------> ./leecher.exe
+
+The files leecherOutput.log and seederOutput.log show the output of running the above .exe's before they terminate due to a substring 
+bounds error.
