@@ -496,8 +496,11 @@ void Peer::createBitfield(int numChunks, string type){
 }
 
 
-void Peer::setFileData(vector<const char*>& data){
-	dataBitfield = data;
+void Peer::setFileData(vector<char*>&  data){
+
+	for(int i = 0; i < data.size(); i++){
+		dataBitfield.push_back((const)data[i]);
+	}
 }
 
 
@@ -519,6 +522,7 @@ string Peer::createPieceRequest(int index){
 string Peer::createCompleteMsg(){
 	return "FILE TRANSFER TO PEER COMPLETE";
 }
+
 /*
 int main(){
 
