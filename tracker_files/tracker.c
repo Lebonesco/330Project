@@ -268,7 +268,7 @@ int main(void)
                 
                 puts("requested download");
                 char *encoded = encode_list(port_array,port_count);
-                send(new_fd, encoded, sizeof(encoded)-1, 0);
+                send(new_fd, "9510", 4, 0);
                 puts("list sent: ");
                 print_list(port_array,port_count);
                     
