@@ -280,7 +280,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		cout << "RECIEVED PIECE. Index: " << index << endl;
 
 		string dataToWrite = data.substr(data.find("type:PIECE|index:") + 1);
-//		dataBitfield[index] = dataToWrite.c_str();
+		dataBitfield[index] = dataToWrite.c_str();
 		bitfield[index] = 1;		// update peer's bitfield
 	}
 
@@ -343,7 +343,7 @@ int Peer::startLeeching(vector<string>& currentPortList){
 	
 	pid_t pid = fork();
 	if(pid == 0){
-		startSeeding(myIP.c_str(), myPort.c_str());
+		startSeeding(selfIP, selfPort);
 	}else if(pid > 0){
 	
 
@@ -359,37 +359,41 @@ int Peer::startLeeching(vector<string>& currentPortList){
 					cout << "Attempting to connect to port " << portList[i] << endl;
 
 					seederSocketFD = connectToClient(selfIP, port.c_str());			//connect to seeder: port and ip need to be c strings
-					if(!FD_ISSET(seederSocketFD, &peerFDs)){
-						FD_SET(seederSocketFD, &peerFDs);
-						cout << "(Client): Added new FD to set." << endl;
-						if(seederSocketFD != -1){
-							seederList.push_back(seederSocketFD);			//add seeder to list of seeders
-							string bFReqMsg = createBitfieldReqMsg();
-							send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
-							cout << "(Client): Sent bfReq -> " << bFReqMsg << endl;
-							recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
-							while(recievedBytes > 0){
-								// decode message before passing to readRecvMSG
-								memset(readBuffer, 0, 100);			//initialize buffer to 0's
-								cout << "(Client): Waiting for response." << endl;
-								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
-								cout << "(Client): Response received. ";
-								cout << "Bytes Received: " << recievedBytes << endl;
-								writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
-								string data = string(writeBuffer.begin(), writeBuffer.end());
-								cout << "Message Recieved: " << data << endl;
-								if(recievedBytes < 100){
-									break;
+					if(seederSocketFD != -1){
+						if(!FD_ISSET(seederSocketFD, &peerFDs)){
+							FD_SET(seederSocketFD, &peerFDs);
+							cout << "(Client): Added new FD to set." << endl;
+							if(seederSocketFD != -1){
+								seederList.push_back(seederSocketFD);			//add seeder to list of seeders
+								string bFReqMsg = createBitfieldReqMsg();
+								send(seederSocketFD, bFReqMsg.c_str(), bFReqMsg.length(), 0);
+								cout << "(Client): Sent bfReq -> " << bFReqMsg << endl;
+								recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), MSG_PEEK);		// peek at incoming message
+								while(recievedBytes > 0){
+									// decode message before passing to readRecvMSG
+									memset(readBuffer, 0, 100);			//initialize buffer to 0's
+									cout << "(Client): Waiting for response." << endl;
+									recievedBytes = recv(seederSocketFD, readBuffer, sizeof(readBuffer), 0);
+									cout << "(Client): Response received. ";
+									cout << "Bytes Received: " << recievedBytes << endl;
+									writeBuffer.insert(writeBuffer.end(), readBuffer, readBuffer + recievedBytes);
+									string data = string(writeBuffer.begin(), writeBuffer.end());
+									cout << "Message Recieved: " << data << endl;
+									if(recievedBytes < 100){
+										break;
+									}
 								}
-							}
-							string data = string(writeBuffer.begin(), writeBuffer.end());
-							writeBuffer.clear();
-							cout << "Message from Server: " << data << endl;
+								string data = string(writeBuffer.begin(), writeBuffer.end());
+								writeBuffer.clear();
+								cout << "Message from Server: " << data << endl;
 
-							//should be new client bitfield every time
-							cout << "(Client): Reading message -> " << data << endl;
-							readRecvMSG(data, seederSocketFD);
+								//should be new client bitfield every time
+								cout << "(Client): Reading message -> " << data << endl;
+								readRecvMSG(data, seederSocketFD);
+							}
 						}
+					}else{
+						continue;
 					}
 				}
 			}
@@ -499,7 +503,7 @@ void Peer::createBitfield(int numChunks, string type){
 void Peer::setFileData(vector<char*>&  data){
 
 	for(int i = 0; i < data.size(); i++){
-		dataBitfield.push_back((const)data[i]);
+		dataBitfield.push_back((const char*)data[i]);
 	}
 }
 
