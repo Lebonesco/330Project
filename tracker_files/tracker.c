@@ -267,8 +267,8 @@ int main(void)
             if (strncmp(buffer,"download",8)==0){
                 
                 puts("requested download");
-                //char *encoded = encode_list(port_array,port_count);
-                send(new_fd, encode_list(port_array,port_count), sizeof(encode_list(port_array,port_count))-1, 0);
+                char *encoded = encode_list(port_array,port_count);
+                send(new_fd, encoded, sizeof(encoded)-1, 0);
                 puts("list sent: ");
                 print_list(port_array,port_count);
                     
