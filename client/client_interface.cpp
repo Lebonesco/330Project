@@ -27,7 +27,7 @@ using namespace std;
 //using namespace metafile;
 //using namespace peer;
 
-#define PORT 8501
+#define PORT 8503
 #define MAXDATASIZE 100
 
 //client constructor

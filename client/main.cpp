@@ -35,16 +35,16 @@ int main(int argc, char * argv[]) {
 	// this instance needs to happen for upload and download
 	// assume this is going to be seeder
 	ports.push_back("9510");
-	Peer* seeder = new Peer(m->chunkNumber, "9510", ports, "Seeder"); 
+//	Peer* seeder = new Peer(m->chunkNumber, "9510", ports, "Seeder"); 
 /*
 	pid_t pid = fork();
 	if (pid == 0) {
 		seeder->startSeeding(seeder->selfIP, seeder->selfPort);
 	}
-*/	peers.push_back(seeder);
-
+	peers.push_back(seeder);
+*/
 	char upORdown = 'a';
-	while (upORdown != 'q') {
+//	while (upORdown != 'q') {
 		c.getUserData(upORdown);
 		if (upORdown == 'u') {
 			//send server message that user wants to upload
@@ -85,7 +85,7 @@ int main(int argc, char * argv[]) {
 			peers.push_back(seeder);
 		}
 */
-		seeder->startSeeding(seeder->selfIP, seeder->selfPort);
+//			seeder->startSeeding(seeder->selfIP, seeder->selfPort);
 
 			//display the options of files to be downloaded
         	        //get user input on which file they would like to download
@@ -93,7 +93,7 @@ int main(int argc, char * argv[]) {
 	                bencoded_info = c.receive(size);
         	        //peer_info = decode(bencoded_info);
                 	cout << bencoded_info << endl;
-
+/*
 			//peer class starts leeching
 			ports.push_back("9511");
 			Peer* leecher1 = new Peer(m->chunkNumber, "9511", ports, "Leech");
@@ -124,13 +124,13 @@ int main(int argc, char * argv[]) {
 					peers[i]->updatePortList(ports);
                 		}
 			}
-                	//server sends message of number of packages to be sent
+*/                	//server sends message of number of packages to be sent
                 	//recieve listing from server of downloadable files
                 	//cout << c.receive(size) << endl;
 
         	}
 		upORdown = 'a';
-	}
+//	}
 	//user said to quit
 	message = "quit";
 	c.sendStringData(message);
