@@ -29,7 +29,7 @@ public:
 	void updatePortList(std::vector<std::string>& ports);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type);
-	void setFileData(std::vector<const char*>& data);
+	void setFileData(std::vector<char*>& data);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
