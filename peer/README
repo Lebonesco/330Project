@@ -1,0 +1,63 @@
+CLICK THE README FOR NON-AWFUL FORMAT
+<Peer Class Info>
+Author: Austin Snyder
+Contributors: Anisha A., Joseph L., and Elijah C.
+
+(Class Description)
+  The Peer class defines a Peer object that can be classified as either a "leecher" or a "seeder". The main functionality of this
+  class is to handle any incoming network connections from leechers, or to send request messages out on the network to seeders, 
+  as well as managing acquired data.
+
+(Files)
+  Peer.cpp: Source file for Peer class
+  Peer.hpp: Header file for Peer class
+
+(Member Variables)
+  numPieces: Number of pieces in desired file. Used to populate bitfields.
+  bitfield: Int vector that keeps track of which pieces the peer currently has. 1 if peer has piece @ index, 0 if not.
+  dataBitfield: Const char* vector that holds actual file data. Indices correspond to bitfield.
+  portList: Vector of strings that holds all port numbers of peers with same file.
+  selfIP: Peer's IP address.
+  selfPort: Peer's port number.
+  queue: Custom data structure to keep track of available pieces based on rarity.
+
+(Functions)
+  createSocket(peerType): Takes a Peer type (leecher/seeder) as a paremeter and creates a network socket. Returns socket
+                          FileDescriptor.
+  
+  connectToClient(ipAddr, port): Takes an IP address and a port number and attempts to connect to specified client by them. Returns
+                                 the FileDescriptor of the connected socket or -1 if the attempt fails.
+  
+  acceptConnection(socketDesc): Takes a socket FileDescriptor as a parameter and accepts the connection. Returns connection
+                                FileDescriptor or -1 if accept fails.
+  
+  bindAndListenSocket(ipAddr, socketDesc): Takes an IP address and a socket FileDescriptor. Listens for incoming connection requests
+                                           and accepts them. Uses a FD_SET to manage any incoming messages via recv() function. Runs
+                                           as long as client is active.
+  
+  readRecvMSG(data, socketDesc): Takes data, a string message, and a socket FileDescriptor. Reads message type and takes appropriate
+                                 action. Message can be a bitfield request, a bitfield, a piece request, a piece, or a file complete.
+                                 
+  startSeeding(ipaddr, port): Takes an IP address and a port number and starts the seeding process. The function creates a socket to 
+                              listen on, binds that socket and then calls the bindAndListenSocket() function documented above.
+                              
+  startLeeching(currentPortList): Takes a vector of peer port information in the desired files swarm. As long as the current file is 
+                                  not complete the leecher will attempt to connect to all peers in the port list for the desried file
+                                  and add any new connections to a vector of current connections. The leecher will then gather info on
+                                  what pieces of the file each connected peer has and request pieces based on a rarest first strategy.
+                                  If the file is complete then the leecher sends a file complete message to each seeder in the list.
+                                  
+ updatePortList(ports): Takes a list of new ports to add to the peer's portList.
+ 
+ fileComplete(): Checks the peer's bitfield to see if the current file is complete.
+ 
+ createBitfield(numChunks, type): Populates the peer's bitfield to all 0's if type is "Leecher", all 1's if type is "Seeder".
+ 
+ setFileData(data): Takes a vector populated with the complete file's data, converts the type to const char* and stores it in the Data
+                    bitfield variable.
+                    
+ createBitfieldReqMsg(): Creates a bitfield request message.
+ 
+ createPieceRequest(index): Takes a bitfield index as a parameter and creates a piece request for the given index.
+ 
+ createCompleteMsg(): Creates a file complete message.
