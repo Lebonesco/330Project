@@ -9,7 +9,7 @@
 #include <vector>
 #include <list>
 #include <netinet/in.h>
-#include "../peer/testVersion/Peer.hpp"
+#include "../peer/FunctionalityDemo/Peer.hpp"
 #include "../metafile/metafile.hpp"
 //#include "../metafile/encoding.cpp"
 using namespace std;
@@ -23,11 +23,9 @@ public:
 	bool connection(int argc, char *argv[]);
 	bool sendStringData(string data);
 	bool sendIntData(int data);
-	string receive(int size); 
-	string receive(string s); 
+	void receive(int size); 
 	string getUploadPath();
 	int chooseDownloadFile();
-//	string encode(int port, string file);
 	bool filesComplete(vector<Peer*> p);
 	bool checkFileValidity(string path);
 	void sendUploadInfo(string path);

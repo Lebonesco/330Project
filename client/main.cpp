@@ -90,9 +90,9 @@ int main(int argc, char * argv[]) {
 			//display the options of files to be downloaded
         	        //get user input on which file they would like to download
                 	//c.chooseDownloadFile();
-	                bencoded_info = c.receive(size);
+	                c.receive(size);
         	        //peer_info = decode(bencoded_info);
-                	cout << bencoded_info << endl;
+                	//cout << bencoded_info << endl;
 /*
 			//peer class starts leeching
 			ports.push_back("9511");
@@ -132,8 +132,8 @@ int main(int argc, char * argv[]) {
 		upORdown = 'a';
 //	}
 	//user said to quit
-	message = "quit";
-	c.sendStringData(message);
+//	message = "quit";
+//	c.sendStringData(message);
 
         c.close_connection();
 	exit(0);
