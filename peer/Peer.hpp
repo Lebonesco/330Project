@@ -11,9 +11,9 @@ public:
 	std::vector<int> bitfield;
 	std::vector<const char*> dataBitfield;
 	std::vector<std::string> portList;
-	ChunkQueue rareQueue (int);
 	const char* selfIP;
 	const char* selfPort;
+	ChunkQueue* queue;
 //public:
 	Peer(const int numChunks, std::string port, std::vector<std::string>& ipPortList, std::string type);
 
@@ -26,16 +26,16 @@ public:
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::vector<std::string>& portList);
-	void updatePortList(std::vector<std::string> port);
-	void getPeerData(std::vector<int> seederList);
+	void updatePortList(std::vector<std::string>& ports);
 	bool fileComplete();
-	void createBitfield(int numChunks, std::string type, std::string data = "");
-	void setFileData(std::vector<const char*> data);
+	void createBitfield(int numChunks, std::string type);
+	void setFileData(std::vector<char*>& data);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*
 	std::string createBitfieldReqMsg();
 	std::string createPieceRequest(int index);
+	std::string createCompleteMsg();
 
 };
 
