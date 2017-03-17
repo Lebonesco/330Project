@@ -1,0 +1,38 @@
+Peer Tracker:
+
+Overview:
+- Keeps tracks of clients that connect to the server by storing the file names and port numbers of clients.
+- Sends back to the client the necessary information it needs to download from the other peers.
+- Stores file properties (Port number, filename) in lists so that it can be retreieved later and sent back to the client when download is called.
+
+Files:
+-tracker.c
+-tracker.h
+
+Functions:
+- updateList(char **array, int count, const char *s): adds a string to the list provided.
+
+- extract_port(const char *string, int index, char **array): Takes in a string from the client, extracts the port number from the string, puts the port number into its list.
+
+- extract_name(const char* string, int index, char **array): Takes in a string from the client, extracts the file name from the string, adds the name to its list.
+
+- encode_list(char **array, int index): takes in a list to be encoded and formats the contents into a long string to be sent back to the client.
+
+- print_list(char **array,int index): Prints the contents of the list provided.
+
+- freeArray(char*** array, int index): free the memory in the array provided.
+
+- encode_int(char* x): encodes an int into a format that can be decoded by the client.
+
+- encode_str(char* x): encodes a str into a format that can be decoded by the client.
+
+Member Variables:
+- int sockfd, new_fd : sockets used for connection
+- char s[INET6_ADDRSTRLEN]: string used to get port number from client that just connected.
+- char buffer[16]: string used to get initial command from the client.
+- char file_name[20]: string for the file name received from the client.
+- char port_number[4]: string used for the port number received from the client.
+- char input[20]: string used to get encoded string from the client.
+- char **data_array: array used to hold the port numbers of all the clients that connect to the server.
+- char **port_array: array used to store the port numbers received from the client when upload is requested.
+- char **name_array: array used to store the file names received from the client when upload is requested.
