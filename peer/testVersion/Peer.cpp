@@ -343,7 +343,7 @@ int Peer::startLeeching(vector<string>& currentPortList){
 	
 	pid_t pid = fork();
 	if(pid == 0){
-		startSeeding(myIP.c_str(), myPort.c_str());
+		startSeeding(selfIP, selfPort);
 	}else if(pid > 0){
 	
 
