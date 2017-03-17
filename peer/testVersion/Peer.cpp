@@ -121,11 +121,11 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 	fd_set allFDs;
 	FD_ZERO(&allFDs);
 	string serverIP = "127.0.0.1";		// *placeholder of local host for now*
-	pid_t pid = fork();
+	//pid_t pid = fork();
 
-	if(pid == 0){
+	//if(pid == 0){
 		listener = listen(socketDesc, 5);	// listen for connections; backlog 5
-	}else if(pid > 0){
+	//}else if(pid > 0){
 
 		if(listener != 0){
 			cout << "Error listening on selected Port" << endl;
@@ -204,9 +204,9 @@ int Peer::bindAndListenSocket(const char* ipAddr, int socketDesc){
 
 		}
 		return listener;
-	}else{
-		cout << "bindAndListen fork failed." << endl;
-	}
+	//}else{
+	//	cout << "bindAndListen fork failed." << endl;
+	//}
 
 }
 
@@ -302,7 +302,7 @@ int Peer::startSeeding(const char* ipAddr, const char* port){
 
 	serverStatus = getaddrinfo(ipAddr, port, &machineInfo, &ptrToMachineInfo);
 	if(serverStatus == 0){
-		newServerSocket = createSocket("SEEDER");
+		newServerSocket = createSocket("Seeder");
 		int s = 1;
 		setsockopt(newServerSocket, SOL_SOCKET, SO_REUSEADDR, &s, sizeof(int));		// set socket options so address/port can be reused
 		serverStatus = ::bind(newServerSocket, ptrToMachineInfo->ai_addr, ptrToMachineInfo->ai_addrlen);		// bind socket
@@ -527,7 +527,7 @@ string Peer::createCompleteMsg(){
 	return "FILE TRANSFER TO PEER COMPLETE";
 }
 
-/*
+
 int main(){
 
 	int chunks1 = 5;
@@ -551,4 +551,4 @@ int main(){
 
 	return 0;
 }
-*/
+
