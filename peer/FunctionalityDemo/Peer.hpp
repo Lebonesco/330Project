@@ -26,10 +26,10 @@ public:
 	//Peer, Seeder, Leecher functions
 	int startSeeding(const char* ipAddr, const char* port);
 	int startLeeching(std::vector<std::string>& portList);
-	void updatePortList(std::vector<std::string>& ports);
+	void updatePortList(std::vector<std::string> ports);
 	bool fileComplete();
 	void createBitfield(int numChunks, std::string type);
-	void setFileData(std::vector<char*>& data);
+	void setFileData(std::vector<const char*> data);
 
 	//Message & Piece Functions									
 	void readRecvMSG(std::string data, int socketDescriptor);								//*

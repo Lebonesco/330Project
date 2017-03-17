@@ -1,0 +1,31 @@
+Attempting to connect to port 8000
+function:connectToClient -> No error connecting to client.
+(Client): Added new FD to set.
+(Client): Sent bfReq -> type:REQBITFIELD
+(Client): Waiting for response.
+(Client): Response received. Bytes Received: 18
+Message Recieved: type:BITFIELD00000
+Message from Server: type:BITFIELD00000
+(Client): Reading message -> type:BITFIELD00000
+RECIEVED: Bitfield.
+Recieved Bitfield: 0 0 0 0 0 
+Update Rarity
+(Client): Getting data from connected Peers.
+Requesting piece at index: 11764224
+(Client): Sending Message -> type:REQPIECE11764224
+(Client): Response received.
+Bytes Received: 37
+Message Recieved: type:PIECE|index:1A placeholder piece
+Message from Server: type:PIECE|index:1A placeholder piece
+RECIEVED: Data Piece.
+index: 1
+RECIEVED PIECE. Index: 1
+Attempting to connect to port 8000
+Attempt to get destination info failed.
+(Client): Added new FD to set.
+(Client): Sent bfReq -> type:REQBITFIELD
+Message from Server: 
+(Client): Reading message -> 
+(Client): Getting data from connected Peers.
+Server is ready to listen
+Error listening on selected Port
