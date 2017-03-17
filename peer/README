@@ -1,3 +1,4 @@
+CLICK THE README FOR NON-AWFUL FORMAT
 <Peer Class Info>
 Author: Austin Snyder
 Contributors: Anisha A., Joseph L., and Elijah C.
@@ -10,7 +11,16 @@ Contributors: Anisha A., Joseph L., and Elijah C.
 (Files)
   Peer.cpp: Source file for Peer class
   Peer.hpp: Header file for Peer class
-  
+
+(Member Variables)
+  numPieces: Number of pieces in desired file. Used to populate bitfields.
+  bitfield: Int vector that keeps track of which pieces the peer currently has. 1 if peer has piece @ index, 0 if not.
+  dataBitfield: Const char* vector that holds actual file data. Indices correspond to bitfield.
+  portList: Vector of strings that holds all port numbers of peers with same file.
+  selfIP: Peer's IP address.
+  selfPort: Peer's port number.
+  queue: Custom data structure to keep track of available pieces based on rarity.
+
 (Functions)
   createSocket(peerType): Takes a Peer type (leecher/seeder) as a paremeter and creates a network socket. Returns socket
                           FileDescriptor.
