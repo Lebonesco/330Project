@@ -280,7 +280,7 @@ void Peer::readRecvMSG(string data, int socketDescriptor){
 		cout << "RECIEVED PIECE. Index: " << index << endl;
 
 		string dataToWrite = data.substr(data.find("type:PIECE|index:") + 1);
-//		dataBitfield[index] = dataToWrite.c_str();
+		dataBitfield[index] = dataToWrite.c_str();
 		bitfield[index] = 1;		// update peer's bitfield
 	}
 
@@ -499,7 +499,7 @@ void Peer::createBitfield(int numChunks, string type){
 void Peer::setFileData(vector<char*>&  data){
 
 	for(int i = 0; i < data.size(); i++){
-		dataBitfield.push_back((const)data[i]);
+		dataBitfield.push_back((const char*)data[i]);
 	}
 }
 
