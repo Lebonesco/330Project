@@ -527,28 +527,3 @@ string Peer::createCompleteMsg(){
 	return "FILE TRANSFER TO PEER COMPLETE";
 }
 
-
-int main(){
-
-	int chunks1 = 5;
-	int chunks2 = 5;
-	string testIP = "127.0.0.1";
-	vector<string> testList;
-	string testPort1 = "8000";
-	string testPort2 = "8080";
-	testList.push_back(testPort1);
-	testList.push_back(testPort2);
-
-	Peer* seeder = new Peer(chunks1, testPort1, testList, "Leech");
-//	Peer* leecher = new Peer(chunks2, testPort2, testList, "Leech");
-
-	//cout << seeder->selfIP << endl;
-	//cout << seeder->portList[0];
-
-
-	seeder->startSeeding(seeder->selfIP, seeder->selfPort);
-//	leecher->startLeeching(leecher->portList);
-
-	return 0;
-}
-
