@@ -9,7 +9,7 @@
 #include <vector>
 #include <list>
 #include <netinet/in.h>
-#include "../peer/FunctionalityDemo/Peer.hpp"
+#include "../peer/Peer.hpp"
 #include "../metafile/metafile.hpp"
 //#include "../metafile/encoding.cpp"
 using namespace std;
@@ -20,7 +20,7 @@ class Client {
 public:
 	Client();
 	void getUserData(char &u_or_d);
-	bool connection(int argc, char *argv[]);
+	bool connection();
 	bool sendStringData(string data);
 	bool sendIntData(int data);
 	void receive(int size); 

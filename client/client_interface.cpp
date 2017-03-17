@@ -50,7 +50,7 @@ void Client::getUserData(char &u_or_d) {
 }
 
 //check if connection was successful
-bool Client::connection(int argc, char *argv[]) {
+bool Client::connection() {
 	
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1) {
@@ -116,7 +116,7 @@ void Client::receive(int size) {
 }
 
 //get user input on path of file to upload
-//open file and send it to server
+//check if file is valid
 string Client::getUploadPath() {
 	string path;
 
@@ -189,16 +189,7 @@ int Client::chooseDownloadFile() {
 	
 	return fileNum;
 }
-/*
-//encode integer
-string Client::encode(int x, std::string path) {
-	string r;
-	r.append(to_string(x));
-	r.append(":");
-	r.append(path);
-	return r;
-}
-*/
+
 //iterate through the peerList
 //check if files are complete
 bool Client::filesComplete(vector<Peer*> peerList) {

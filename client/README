@@ -1,0 +1,40 @@
+<Client Class Info>
+Author: Anisha Aggarwal
+Contributors: Austin S., Joseph L., and Elijah C.
+
+(Class Description)
+
+(Files)
+	Client.hpp: header file for Client class
+	client_interface.cpp: source file for client
+	main.cpp: main function
+
+(Member Variables)
+	Client(): Constructor of Client class
+	
+        void getUserData(char &u_or_d): Gets the user input on whether they would like to upload or download a file.
+
+        bool connection(): Establishes a connection with the tracker (server). Creates a socket for the server to bind to. Checks if the connection was made of if the connection failed. It would fail if the port server and client are connecting to are different or if the it is not able to connect to the IP address given (we used local host).
+
+        bool sendStringData(string data): Sends string data to the server. There is a check if sending the string has failed.
+
+        void receive(int size): Receives string data from the server. I pass in the size of the string to create a buffer that is big enough to read in the data being sent to the client. There is a check to see if receiving the data failed, else we print out the recieved data. 
+
+        string getUploadPath(): Get user input on path of file to upload and check if the file is valid. If file is not valid, ask user to reenter a path.
+
+        int chooseDownloadFile(): gives the user the ability to choose which file they would like to download. For our functionality, we had only 1 file available to the user to download, so we did not provide this option to the user.
+
+        bool filesComplete(vector<Peer*> p): iterates through the list of peers and checks if they have the entire file or not. If yes, returns true. If not, it will return false. This will tell the client to proceed to listen from the server for updated peers and Peers will continue to get peices from each other.
+
+        bool checkFileValidity(string path): Checks if the file is an actual file availble to upload. Looks to see if we acn open the file or not. 
+
+        void sendUploadInfo(string path): Checks if file is valid and then sends the file to the server. For our implementation, we did not send the server the file.
+
+        void close_connection(): closes the connection with the server
+
+(Member Functions)
+        int sock: holds socket
+        string server: address of server
+        int port: predefined port number of server
+        struct sockaddr_in sock_addr: socket address 
+
